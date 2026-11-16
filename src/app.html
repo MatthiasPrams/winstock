@@ -189,6 +189,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .pro-list li{display:flex;gap:8px}
 /* 16px keeps iOS Safari from zooming in when the field gets focus */
 .code-in{font-family:ui-monospace,Consolas,monospace;font-size:16px!important;min-height:96px;word-break:break-all}
+.paste-hint{font-size:14px;font-weight:600;color:var(--blue);padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--blue) 12%,transparent)}
 .swatches{display:flex;gap:10px;flex-wrap:wrap}
 .swatch{width:44px;height:44px;border-radius:50%;border:3px solid transparent;background:var(--sw);position:relative}
 .swatch[aria-pressed="true"]{border-color:var(--fg)}
@@ -353,7 +354,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
     <span class="flabel" style="margin-top:12px">Sonstiges</span>
     <button class="btn btn-ghost" type="button" id="btnExamples">Beispiel-Erfolge anzeigen</button>
     <button class="btn btn-danger" type="button" id="btnWipe">Alle Erfolge löschen</button>
-    <p class="note" style="text-align:center;margin:10px 0 0">WinStock · Version 1.5</p>
+    <p class="note" style="text-align:center;margin:10px 0 0">WinStock · Version 1.6</p>
   </div>
 </div>
 
@@ -372,10 +373,11 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
       <li><span>💎</span><span>Den Pokal „Pro-Investor“</span></li>
     </ul>
   </div>
-  <p class="note" style="margin:14px 0">Den Freischaltcode bekommst du von der Person, von der du WinStock hast. Kopiere ihn und füge ihn hier ein.</p>
+  <p class="note" style="margin:14px 0">Den Freischaltcode bekommst du von der Person, von der du WinStock hast. Kopiere ihn, tippe ins Feld und wähle „Einfügen“. Die App schaltet dann automatisch frei.</p>
   <div class="field">
     <label for="codeIn">Freischaltcode</label>
-    <textarea id="codeIn" class="code-in" placeholder="WS-…" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+    <textarea id="codeIn" class="code-in" placeholder="Tippe hier hinein und wähle „Einfügen“" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+    <span class="paste-hint" id="pasteHint" hidden>👆 Tippe ins Feld und dann auf „Einfügen“. Die App schaltet automatisch frei.</span>
     <span class="err" id="codeErr" hidden></span>
   </div>
   <div class="btn-row" style="margin-top:0"><button class="btn btn-ghost" type="button" id="btnPaste">Einfügen</button><button class="btn btn-primary" type="button" id="btnUnlock">Freischalten</button></div>
@@ -608,7 +610,7 @@ function openPro(limit){
   $('#proLead').textContent = limit
     ? `Du hast schon ${FREE_LIMIT} Erfolge gesammelt, stark! Die kostenlose Version reicht für ${FREE_LIMIT} Erfolge. Mit Pro geht es unbegrenzt weiter.`
     : `Die kostenlose Version reicht für ${FREE_LIMIT} Erfolge. Mit Pro sammelst du unbegrenzt weiter und bekommst ein paar Extras.`;
-  $('#codeIn').value = ''; $('#codeErr').hidden = true;
+  $('#codeIn').value = ''; $('#codeErr').hidden = true; $('#pasteHint').hidden = true;
   openSheet('sheetPro');
 }
 
@@ -1002,24 +1004,34 @@ $('#btnStartExamples').addEventListener('click', () => { state.name = $('#wName'
 $('#proStatus').addEventListener('click', e => { if (e.target.closest('#btnOpenPro')) openPro(false); });
 $('#swatches').addEventListener('click', e => { const b = e.target.closest('.swatch'); if (!b || !proName) return;
   state.theme = b.dataset.theme; save(); applyTheme(); renderPro(); renderChart(); });
-$('#codeIn').addEventListener('input', () => { $('#codeErr').hidden = true; });
-$('#btnPaste').addEventListener('click', async () => {
-  try { const t = await navigator.clipboard.readText(); if (t) { $('#codeIn').value = t.trim(); $('#codeErr').hidden = true; return; } } catch (e) {}
-  $('#codeIn').focus(); toast('Halte das Feld gedrückt und wähle „Einfügen“');
+// As soon as a complete code lands in the field (typed, pasted or via the button), unlock automatically.
+let unlocking = false;
+$('#codeIn').addEventListener('input', () => {
+  $('#codeErr').hidden = true;
+  if (extractCode($('#codeIn').value)) { $('#pasteHint').hidden = true; doUnlock(); }
 });
-$('#btnUnlock').addEventListener('click', async () => {
+$('#btnPaste').addEventListener('click', async () => {
+  try {
+    const t = navigator.clipboard && navigator.clipboard.readText ? await navigator.clipboard.readText() : '';
+    if (t && t.trim()) { $('#codeIn').value = t.trim(); $('#codeErr').hidden = true; $('#pasteHint').hidden = true; doUnlock(); return; }
+  } catch (e) {}
+  $('#pasteHint').hidden = false; $('#codeIn').focus();
+});
+$('#btnUnlock').addEventListener('click', () => doUnlock());
+async function doUnlock(){
+  if (unlocking) return;
   const code = $('#codeIn').value, err = $('#codeErr'), btn = $('#btnUnlock');
   if (!code.trim()) { err.textContent = 'Füge zuerst deinen Code ein.'; err.hidden = false; return; }
-  btn.disabled = true;
+  unlocking = true; btn.disabled = true;
   const name = await verifyCode(code);
-  btn.disabled = false;
+  btn.disabled = false; unlocking = false;
   if (!name) { err.textContent = 'Dieser Code funktioniert nicht. Prüfe, ob du ihn vollständig kopiert hast.'; err.hidden = false; return; }
   state.pro = extractCode(code); proName = name;
   if (!state.name) state.name = name;
   state.trophies = [...new Set([...state.trophies, ...unlocked(stats())])];
   save(); closeSheets(); applyTheme(); render();
   confetti(220); toast(`💎 <b>Pro freigeschaltet</b> für ${esc(name)}!`, 3800);
-});
+}
 
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(renderChart, 120); });
 

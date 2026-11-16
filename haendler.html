@@ -113,7 +113,7 @@ textarea{min-height:90px;font-family:ui-monospace,Consolas,monospace;font-size:1
       <div id="sales"></div>
     </section>
 
-    <div class="foot"><button type="button" id="btnForget">Schlüssel von diesem Gerät entfernen</button><p style="color:var(--muted);font-size:12px;margin:10px 0 0">Händler-Seite · Version 1.5</p></div>
+    <div class="foot"><button type="button" id="btnForget">Schlüssel von diesem Gerät entfernen</button><p style="color:var(--muted);font-size:12px;margin:10px 0 0">Händler-Seite · Version 1.6</p></div>
   </div>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -160,7 +160,7 @@ function renderSales(){
 }
 
 function message(name){
-  return `Hallo ${name}! 🎉 Dein WinStock Pro ist bereit. In der nächsten Nachricht kommt dein Freischaltcode.\n\nSo geht's:\n1. Halte die nächste Nachricht gedrückt und tippe auf „Kopieren“.\n2. Öffne WinStock → Zahnrad ⚙️ → „Pro freischalten“.\n3. Tippe auf „Einfügen“ und dann auf „Freischalten“.\n\nApp: ${APP_URL}`;
+  return `Hallo ${name}! 🎉 Dein WinStock Pro ist bereit. In der nächsten Nachricht kommt dein Freischaltcode.\n\nSo geht's:\n1. Halte die nächste Nachricht gedrückt und tippe auf „Kopieren“.\n2. Öffne WinStock → Zahnrad ⚙️ → „Pro freischalten“.\n3. Tippe ins Code-Feld und wähle „Einfügen“ – fertig, die App schaltet automatisch frei.\n\nApp: ${APP_URL}`;
 }
 function showCode(name, code){
   lastCode = code; lastMsg = message(name);
