@@ -187,7 +187,8 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .pro-card h4{margin:0 0 4px;font-family:var(--display);font-size:18px}
 .pro-list{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .pro-list li{display:flex;gap:8px}
-.code-in{font-family:ui-monospace,Consolas,monospace;font-size:13px!important;min-height:76px;word-break:break-all}
+/* 16px keeps iOS Safari from zooming in when the field gets focus */
+.code-in{font-family:ui-monospace,Consolas,monospace;font-size:16px!important;min-height:96px;word-break:break-all}
 .swatches{display:flex;gap:10px;flex-wrap:wrap}
 .swatch{width:44px;height:44px;border-radius:50%;border:3px solid transparent;background:var(--sw);position:relative}
 .swatch[aria-pressed="true"]{border-color:var(--fg)}
@@ -352,7 +353,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
     <span class="flabel" style="margin-top:12px">Sonstiges</span>
     <button class="btn btn-ghost" type="button" id="btnExamples">Beispiel-Erfolge anzeigen</button>
     <button class="btn btn-danger" type="button" id="btnWipe">Alle Erfolge löschen</button>
-    <p class="note" style="text-align:center;margin:10px 0 0">WinStock · Version 1.4</p>
+    <p class="note" style="text-align:center;margin:10px 0 0">WinStock · Version 1.5</p>
   </div>
 </div>
 
