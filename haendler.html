@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>WinStock Händler</title>
+<meta name="theme-color" content="#0A0E13">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: single column tool – key setup, code generator, sales ledger */
+:root{
+  --bg:#0A0E13; --surface:#11171F; --surface-2:#18212C; --line:#222C38; --fg:#ECF1F7; --muted:#8592A3;
+  --gain:#2BD67B; --gold:#FFC23D; --danger:#FF5C6C;
+  --display:'Space Grotesk',ui-sans-serif,system-ui,sans-serif; --body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--body);font-size:15px;line-height:1.45;padding-top:env(safe-area-inset-top,0px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+main{max-width:520px;margin:0 auto}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #4DA3FF;outline-offset:2px}
+header{display:flex;align-items:center;gap:10px;padding-block:18px 8px}
+header img{width:36px;height:36px;border-radius:10px}
+header h1{font-family:var(--display);font-size:22px;margin:0}
+header span{color:var(--muted);font-size:13px;display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:14px}
+.card h2{font-family:var(--display);font-size:19px;margin:0 0 4px}
+.note{color:var(--muted);font-size:14px;margin:0 0 14px}
+label,.flabel{display:block;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+input[type=text],input[type=number],textarea{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--fg);font:inherit;font-size:16px}
+textarea{min-height:90px;font-family:ui-monospace,Consolas,monospace;font-size:13px;word-break:break-all}
+.row2{display:grid;grid-template-columns:1fr 110px;gap:10px}
+.field{margin-bottom:14px}
+.btn{display:block;width:100%;padding:14px;border-radius:14px;font-weight:700;font-size:16px;text-align:center}
+.btn-primary{background:var(--gain);color:#04210F}
+.btn-ghost{background:var(--surface-2)}
+.btn-danger{background:color-mix(in srgb,var(--danger) 16%,var(--surface-2));color:var(--danger)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.err{color:var(--danger);font-size:13px;margin-top:6px}
+.codebox{margin-top:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,var(--gain) 10%,var(--surface-2));border:1px solid color-mix(in srgb,var(--gain) 40%,var(--line))}
+.codebox .for{font-weight:700;margin-bottom:6px}
+.codebox code{display:block;font-family:ui-monospace,Consolas,monospace;font-size:12px;word-break:break-all;color:var(--fg);user-select:all}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi{background:var(--surface-2);border-radius:14px;padding:12px}
+.kpi .l{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.kpi .v{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .v.g{color:var(--gold)}
+.sale{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding-block:10px;border-top:1px solid var(--line)}
+.sale .n{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sale .d{font-size:12px;color:var(--muted)}
+.sale .p{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
+.sale button{font-size:13px;color:#4DA3FF;font-weight:600}
+.empty{color:var(--muted);font-size:14px;padding-block:6px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--surface-2);border:1px solid var(--line);padding:12px 18px;border-radius:999px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.foot{margin-top:22px;text-align:center}
+.foot button{color:var(--muted);font-size:13px;text-decoration:underline}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <header><img src="icon-192.png" alt=""><div><h1>WinStock Händler</h1><span>Freischaltcodes für WinStock Pro</span></div></header>
+
+  <section class="card" id="setup" hidden>
+    <h2>🔑 Händler-Schlüssel einrichten</h2>
+    <p class="note">Nur mit deinem geheimen Schlüssel kannst du gültige Codes erstellen. Füge ihn einmal hier ein, dann merkt sich dieses Gerät ihn. Gib den Schlüssel niemals weiter!</p>
+    <div class="field"><label for="keyIn">Schlüssel</label><textarea id="keyIn" placeholder='{"kty":"EC", …}' spellcheck="false" autocapitalize="off"></textarea>
+      <div class="err" id="keyErr" hidden></div></div>
+    <div class="btns" style="margin-top:0"><label class="btn btn-ghost" for="keyFile" style="margin:0;text-transform:none;letter-spacing:0;font-size:16px;color:var(--fg);cursor:pointer">Datei wählen</label><button class="btn btn-primary" id="btnKey" type="button">Speichern</button></div>
+    <input type="file" id="keyFile" accept=".txt,.json,text/plain,application/json" hidden>
+  </section>
+
+  <div id="tool" hidden>
+    <section class="card">
+      <h2>Neuen Code erstellen</h2>
+      <p class="note">Der Code gilt nur für diesen Namen. Der Name erscheint später in der App des Käufers.</p>
+      <div class="row2">
+        <div class="field"><label for="buyer">Name des Käufers</label><input type="text" id="buyer" maxlength="30" autocomplete="off" placeholder="z. B. Lena"></div>
+        <div class="field"><label for="price">Preis (€)</label><input type="number" id="price" min="0" step="0.5" inputmode="decimal"></div>
+      </div>
+      <button class="btn btn-primary" type="button" id="btnGen">Code erstellen</button>
+      <div class="err" id="genErr" hidden></div>
+      <div class="codebox" id="codebox" hidden>
+        <div class="for" id="codeFor"></div>
+        <code id="codeOut"></code>
+        <div class="btns"><button class="btn btn-ghost" type="button" id="btnCopy">Kopieren</button><button class="btn btn-primary" type="button" id="btnShare">Senden</button></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Meine Verkäufe</h2>
+      <div class="kpis" style="margin-top:10px"><div class="kpi"><div class="l">Verkauft</div><div class="v" id="kCount">0</div></div><div class="kpi"><div class="l">Einnahmen</div><div class="v g" id="kSum">0 €</div></div></div>
+      <div id="sales"></div>
+    </section>
+
+    <div class="foot"><button type="button" id="btnForget">Schlüssel von diesem Gerät entfernen</button></div>
+  </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+const PUB = {x:'ShvUU1leu1s9Ltk0RwaG5S_wQXnpHwHrj0ZCYvt6aK0', y:'Ntxd5JAwD2ZEYFWKHSuAuBzlT4w3QGzff4QnxD7u5mM'};
+const APP_URL = new URL('./', location.href).href;
+const K_KEY = 'winstock.haendler.key', K_SALES = 'winstock.haendler.sales', K_PRICE = 'winstock.haendler.price';
+const get = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const set = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const del = k => { try { localStorage.removeItem(k); } catch (e) {} };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const normName = n => String(n).normalize('NFC').trim().replace(/\s+/g, ' ');
+const b64u = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const euro = v => v.toLocaleString('de-DE', {minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2}) + ' €';
+let key = null, sales = [], lastMsg = '', lastCode = '';
+try { sales = JSON.parse(get(K_SALES)) || []; } catch (e) { sales = []; }
+
+let tt; function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2600); }
+
+async function loadKey(text){
+  let jwk;
+  try { jwk = JSON.parse(String(text).trim()); } catch (e) { throw new Error('Das sieht nicht wie ein Händler-Schlüssel aus.'); }
+  if (!jwk || jwk.kty !== 'EC' || !jwk.d) throw new Error('Das sieht nicht wie ein Händler-Schlüssel aus.');
+  if (jwk.x !== PUB.x || jwk.y !== PUB.y) throw new Error('Dieser Schlüssel passt nicht zu WinStock.');
+  return crypto.subtle.importKey('jwk', {kty:'EC', crv:'P-256', x:jwk.x, y:jwk.y, d:jwk.d}, {name:'ECDSA', namedCurve:'P-256'}, false, ['sign']);
+}
+
+function show(){
+  $('#setup').hidden = !!key; $('#tool').hidden = !key;
+  const p = get(K_PRICE); $('#price').value = p !== null ? p : '1.5';
+  renderSales();
+}
+
+function renderSales(){
+  $('#kCount').textContent = sales.length;
+  $('#kSum').textContent = euro(sales.reduce((s, x) => s + (Number(x.price) || 0), 0));
+  $('#sales').innerHTML = sales.length ? sales.slice().reverse().map(s => `<div class="sale"><div style="min-width:0"><div class="n">${esc(s.name)}</div><div class="d">${new Date(s.at).toLocaleDateString('de-DE')}</div></div>
+    <span class="p">${euro(Number(s.price) || 0)}</span><button type="button" data-code="${esc(s.code)}" data-name="${esc(s.name)}">Code</button></div>`).join('')
+    : '<div class="empty">Noch keine Verkäufe. Dein erster Code wartet!</div>';
+}
+
+function message(name, code){
+  return `Hier ist dein WinStock-Pro-Code, ${name}:\n\n${code}\n\nSo geht's: WinStock öffnen → Zahnrad ⚙️ → „Pro freischalten“ → Code einfügen → „Freischalten“.\n\nApp: ${APP_URL}`;
+}
+function showCode(name, code){
+  lastCode = code; lastMsg = message(name, code);
+  $('#codeFor').textContent = 'Code für ' + name; $('#codeOut').textContent = code; $('#codebox').hidden = false;
+}
+
+$('#btnKey').addEventListener('click', async () => {
+  const err = $('#keyErr'); err.hidden = true;
+  try { const text = $('#keyIn').value; key = await loadKey(text); set(K_KEY, text.trim()); $('#keyIn').value = ''; show(); toast('Schlüssel gespeichert'); }
+  catch (e) { err.textContent = e.message || 'Das hat nicht geklappt.'; err.hidden = false; }
+});
+$('#keyFile').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader();
+  r.onload = () => { $('#keyIn').value = r.result; $('#btnKey').click(); }; r.readAsText(f); e.target.value = ''; });
+
+$('#btnGen').addEventListener('click', async () => {
+  const err = $('#genErr'); err.hidden = true;
+  const name = normName($('#buyer').value);
+  if (!name) { err.textContent = 'Gib den Namen des Käufers ein.'; err.hidden = false; $('#buyer').focus(); return; }
+  const price = Math.max(0, Number(String($('#price').value).replace(',', '.')) || 0);
+  set(K_PRICE, String(price));
+  const sig = await crypto.subtle.sign({name:'ECDSA', hash:'SHA-256'}, key, new TextEncoder().encode('WinStock-Pro:' + name));
+  const code = 'WS-' + b64u(new TextEncoder().encode(name)) + '.' + b64u(sig);
+  sales.push({name, price, at: Date.now(), code}); set(K_SALES, JSON.stringify(sales));
+  showCode(name, code); renderSales(); $('#buyer').value = '';
+  toast('Code für ' + name + ' erstellt');
+});
+
+$('#btnCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(lastMsg); toast('Nachricht mit Code kopiert'); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($('#codeOut')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Code markiert – jetzt kopieren'); }
+});
+$('#btnShare').addEventListener('click', async () => {
+  if (navigator.share) { try { await navigator.share({text: lastMsg}); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  $('#btnCopy').click();
+});
+$('#sales').addEventListener('click', e => { const b = e.target.closest('button[data-code]'); if (!b) return;
+  showCode(b.dataset.name, b.dataset.code); $('#codebox').scrollIntoView({behavior:'smooth', block:'center'}); });
+$('#btnForget').addEventListener('click', e => {
+  const b = e.currentTarget;
+  if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Sicher? Tippe nochmal zum Entfernen'; return; }
+  del(K_KEY); key = null; delete b.dataset.armed; b.textContent = 'Schlüssel von diesem Gerät entfernen'; show(); toast('Schlüssel entfernt');
+});
+
+(async () => { const saved = get(K_KEY); if (saved) { try { key = await loadKey(saved); } catch (e) { key = null; } } show(); })();
+})();
+</script>
+</body>
+</html>

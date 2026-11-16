@@ -6,7 +6,7 @@
 :root{
   --bg:#0A0E13; --surface:#11171F; --surface-2:#18212C; --line:#222C38;
   --fg:#ECF1F7; --muted:#8592A3;
-  --gain:#2BD67B; --blue:#4DA3FF; --gold:#FFC23D; --danger:#FF5C6C;
+  --accent:#2BD67B; --gain:#2BD67B; --blue:#4DA3FF; --gold:#FFC23D; --danger:#FF5C6C;
   --display:'Space Grotesk',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
   --body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   color-scheme:dark;
@@ -26,7 +26,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 /* Top bar */
 .top{display:flex;align-items:center;justify-content:space-between;padding-block:14px 6px}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em}
-.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--gain),var(--blue));display:grid;place-items:center}
+.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--blue));display:grid;place-items:center}
 .logo svg{width:20px;height:20px;stroke:var(--bg);stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .top-actions{display:flex;align-items:center;gap:8px}
 .streak{display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:999px;background:var(--surface-2);font-weight:600;font-size:14px}
@@ -45,11 +45,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .value{display:flex;align-items:baseline;gap:6px;margin-top:2px}
 .value .big{font-family:var(--display);font-variant-numeric:tabular-nums;font-size:52px;font-weight:700;letter-spacing:-.03em;line-height:1.05}
 .value .unit{font-size:16px;color:var(--muted);font-weight:600}
-.change{margin-top:4px;font-weight:600;font-size:15px;color:var(--gain);font-variant-numeric:tabular-nums}
+.change{margin-top:4px;font-weight:600;font-size:15px;color:var(--accent);font-variant-numeric:tabular-nums}
 .change.flat{color:var(--muted)}
 .change .per{color:var(--muted);font-weight:500}
 .mood{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;width:96px;text-align:center}
-.mood .face{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:42px;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--gain) 22%,var(--surface-2)),var(--surface-2) 70%);border:1px solid var(--line);transition:transform .3s}
+.mood .face{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:42px;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--accent) 22%,var(--surface-2)),var(--surface-2) 70%);border:1px solid var(--line);transition:transform .3s}
 .mood:hover .face{transform:scale(1.06) rotate(-4deg)}
 .mood .face.pop{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
 @keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
@@ -58,7 +58,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 #chart{width:100%;height:100%;display:block;overflow:visible}
 .ranges{display:flex;gap:4px;justify-content:space-between;margin-top:8px}
 .ranges button{flex:1;padding:7px 0;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted)}
-.ranges button[aria-selected="true"]{background:var(--surface-2);color:var(--gain)}
+.ranges button[aria-selected="true"]{background:var(--surface-2);color:var(--accent)}
 
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
@@ -123,7 +123,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .sec-title{font-family:var(--display);font-size:18px;margin:26px 0 6px}
 .catbar{display:grid;grid-template-columns:28px 92px 1fr 44px;gap:8px;align-items:center;padding-block:6px;font-size:14px}
 .catbar .bar{margin:0;height:10px}
-.catbar .bar i{background:linear-gradient(90deg,var(--gain),var(--blue))}
+.catbar .bar i{background:linear-gradient(90deg,var(--accent),var(--blue))}
 .catbar .cv{text-align:right;font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
 
 /* Tab bar */
@@ -135,7 +135,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .tab.active{color:var(--fg)}
 .tab .dot{position:absolute;top:6px;right:calc(50% - 18px);min-width:16px;height:16px;border-radius:8px;background:var(--blue);color:var(--bg);font-size:10px;font-weight:800;display:grid;place-items:center;padding-inline:4px}
 .fab-wrap{display:flex;justify-content:center;align-items:flex-start;height:100%}
-.fab{width:62px;height:62px;border-radius:50%;margin-top:-20px;background:linear-gradient(135deg,var(--gain),#1FB8A0);display:grid;place-items:center;box-shadow:0 8px 24px color-mix(in srgb,var(--gain) 40%,transparent),0 0 0 6px var(--bg);transition:transform .15s}
+.fab{width:62px;height:62px;border-radius:50%;margin-top:-20px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 72%,#0A3A4A));display:grid;place-items:center;box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 40%,transparent),0 0 0 6px var(--bg);transition:transform .15s}
 .fab:active{transform:scale(.92)}
 .fab svg{width:30px;height:30px;stroke:#04210F;stroke-width:3;fill:none;stroke-linecap:round}
 
@@ -156,7 +156,7 @@ input[type=date]{min-height:48px}
 .err{color:var(--danger);font-size:13px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);font-size:14px;font-weight:600}
-.chip[aria-pressed="true"]{border-color:var(--gain);background:color-mix(in srgb,var(--gain) 16%,var(--surface-2));color:var(--fg)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--surface-2));color:var(--fg)}
 
 .lvl-pick{border-radius:16px;padding:14px;background:var(--surface-2);border:1px solid var(--line)}
 .lvl-show{display:flex;align-items:center;gap:14px}
@@ -174,7 +174,23 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .ticks-l{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px}
 
 .btn{display:block;width:100%;padding:15px;border-radius:14px;font-weight:700;font-size:16px;text-align:center}
-.btn-primary{background:var(--gain);color:#04210F}
+.btn-primary{background:var(--accent);color:#04210F}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* Pro */
+.pro-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#1A1300;background:linear-gradient(135deg,var(--gold),#FF9F43);margin-left:2px}
+.pro-card{border-radius:16px;padding:16px;background:linear-gradient(150deg,color-mix(in srgb,var(--gold) 16%,var(--surface-2)),var(--surface-2));border:1px solid color-mix(in srgb,var(--gold) 35%,var(--line))}
+.pro-card h4{margin:0 0 4px;font-family:var(--display);font-size:18px}
+.pro-list{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.pro-list li{display:flex;gap:8px}
+.code-in{font-family:ui-monospace,Consolas,monospace;font-size:13px!important;min-height:76px;word-break:break-all}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swatch{width:44px;height:44px;border-radius:50%;border:3px solid transparent;background:var(--sw);position:relative}
+.swatch[aria-pressed="true"]{border-color:var(--fg)}
+.swatch:disabled{opacity:.35;cursor:default}
+.limit-meter{font-size:13px;color:var(--muted)}
+.limit-meter .bar{height:6px;margin-top:6px}
+.limit-meter .bar i{background:var(--accent)}
 .btn-ghost{background:var(--surface-2);color:var(--fg)}
 .btn-danger{background:color-mix(in srgb,var(--danger) 16%,var(--surface-2));color:var(--danger)}
 .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
@@ -193,7 +209,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 /* Toast + confetti */
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);z-index:70;background:var(--surface-2);border:1px solid var(--line);padding:12px 18px;border-radius:999px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:calc(100% - 32px);text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.toast b{color:var(--gain)}
+.toast b{color:var(--accent)}
 #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -201,7 +217,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 
 <div id="app">
   <header class="top">
-    <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg></span>WinStock</div>
+    <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg></span>WinStock<span class="pro-badge" id="proBadge" hidden>PRO</span></div>
     <div class="top-actions">
       <span id="streak" class="streak" title="Tage in Folge mit einem Erfolg">🔥 0</span>
       <button id="btnSettings" class="icon-btn" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
@@ -321,7 +337,10 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   <h3>Einstellungen</h3>
   <div class="field"><label for="sName">Dein Name</label><input type="text" id="sName" maxlength="30" placeholder="Dein Name" autocomplete="off"></div>
   <div class="stack">
-    <span class="flabel">Sicherung</span>
+    <span class="flabel">WinStock Pro</span>
+    <div id="proStatus"></div>
+    <div class="field" style="margin:4px 0 0"><span class="flabel">Farbe</span><div class="swatches" id="swatches"></div></div>
+    <span class="flabel" style="margin-top:12px">Sicherung</span>
     <p class="note" style="margin:0">Deine Erfolge sind nur auf diesem Gerät gespeichert. Mach ab und zu ein Backup, damit nichts verloren geht.</p>
     <button class="btn btn-ghost" type="button" id="btnExport">Backup speichern</button>
     <label class="btn btn-ghost" for="fileImport" style="cursor:pointer">Backup laden</label>
@@ -330,6 +349,30 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
     <button class="btn btn-ghost" type="button" id="btnExamples">Beispiel-Erfolge anzeigen</button>
     <button class="btn btn-danger" type="button" id="btnWipe">Alle Erfolge löschen</button>
   </div>
+</div>
+
+<!-- Pro / unlock -->
+<div class="sheet" id="sheetPro" role="dialog" aria-label="WinStock Pro">
+  <div class="grab"></div>
+  <div style="font-size:48px;line-height:1;margin-bottom:8px">💎</div>
+  <h3 id="proTitle" style="margin-bottom:6px">WinStock Pro</h3>
+  <p class="note" id="proLead" style="font-size:15px;margin:0 0 14px"></p>
+  <div class="pro-card">
+    <h4>Mit Pro bekommst du</h4>
+    <ul class="pro-list">
+      <li><span>♾️</span><span>Unbegrenzt viele Erfolge</span></li>
+      <li><span>🎨</span><span>5 Farben für deine App</span></li>
+      <li><span>⭐</span><span>Das goldene PRO-Abzeichen</span></li>
+      <li><span>💎</span><span>Den Pokal „Pro-Investor“</span></li>
+    </ul>
+  </div>
+  <p class="note" style="margin:14px 0">Den Freischaltcode bekommst du von der Person, von der du WinStock hast. Kopiere ihn und füge ihn hier ein.</p>
+  <div class="field">
+    <label for="codeIn">Freischaltcode</label>
+    <textarea id="codeIn" class="code-in" placeholder="WS-…" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+    <span class="err" id="codeErr" hidden></span>
+  </div>
+  <div class="btn-row" style="margin-top:0"><button class="btn btn-ghost" type="button" id="btnPaste">Einfügen</button><button class="btn btn-primary" type="button" id="btnUnlock">Freischalten</button></div>
 </div>
 
 <!-- Welcome -->
@@ -384,6 +427,28 @@ const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August',
 const MON_S = ['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sep.','Okt.','Nov.','Dez.'];
 const RANGES = {'1W':7, '1M':30, '3M':90, '1J':365, 'Max':0};
 const RANGE_LABEL = {'1W':'diese Woche', '1M':'im letzten Monat', '3M':'in 3 Monaten', '1J':'im letzten Jahr', 'Max':'insgesamt'};
+/* Pro: free version holds FREE_LIMIT own successes. Codes are ECDSA signatures that only the seller's private key can create. */
+const FREE_LIMIT = 15;
+const PRO_KEY = {kty:'EC', crv:'P-256', x:'ShvUU1leu1s9Ltk0RwaG5S_wQXnpHwHrj0ZCYvt6aK0', y:'Ntxd5JAwD2ZEYFWKHSuAuBzlT4w3QGzff4QnxD7u5mM'};
+const THEMES = [
+  {id:'gruen', name:'Grün', c:'#2BD67B'}, {id:'ozean', name:'Ozean', c:'#38BDF8'}, {id:'gold', name:'Gold', c:'#FFC23D'},
+  {id:'lila', name:'Lila', c:'#A78BFA'}, {id:'pink', name:'Pink', c:'#F472B6'}
+];
+let proName = null;
+const normName = n => String(n).normalize('NFC').trim().replace(/\s+/g, ' ');
+function b64uDec(s){ s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const bin = atob(s); return Uint8Array.from(bin, ch => ch.charCodeAt(0)); }
+async function verifyCode(code){
+  try {
+    const m = /^WS-([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(String(code).replace(/\s+/g, ''));
+    if (!m) return null;
+    const name = normName(new TextDecoder().decode(b64uDec(m[1])));
+    const sig = b64uDec(m[2]);
+    if (!name || sig.length !== 64) return null;
+    const key = await crypto.subtle.importKey('jwk', PRO_KEY, {name:'ECDSA', namedCurve:'P-256'}, false, ['verify']);
+    const ok = await crypto.subtle.verify({name:'ECDSA', hash:'SHA-256'}, key, sig, new TextEncoder().encode('WinStock-Pro:' + name));
+    return ok ? name : null;
+  } catch (e) { return null; }
+}
 const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- helpers ---------- */
@@ -412,7 +477,7 @@ function relAgo(s){
 const genitive = n => /[sßxz]$/i.test(n) ? n + '’' : n + 's';
 
 /* ---------- storage ---------- */
-function blank(){ return {name:'', entries:[], trophies:[], onboarded:false}; }
+function blank(){ return {name:'', entries:[], trophies:[], onboarded:false, pro:'', theme:'gruen'}; }
 function load(){
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
@@ -472,7 +537,7 @@ function stats(){
   for (let i = 0; i < sorted.length; i++) { while (sorted[i] - sorted[j] > 6 * 864e5) j++; bestWeek = Math.max(bestWeek, i - j + 1); }
   const cats = new Set(E.map(e => e.cat)).size;
   const max = E.reduce((m, e) => Math.max(m, e.level), 0);
-  return {n, total, week, streak, best, bestWeek, cats, max};
+  return {n, total, week, streak, best, bestWeek, cats, max, pro: !!proName};
 }
 const TROPHIES = [
   {id:'first', i:'🌱', n:'Erster Erfolg', d:'Trag deinen ersten Erfolg ein', g:s => [s.n, 1]},
@@ -488,7 +553,8 @@ const TROPHIES = [
   {id:'n50', i:'📈', n:'Erfolgs-Sammler', d:'50 Erfolge eingetragen', g:s => [s.n, 50]},
   {id:'ten', i:'👑', n:'Legendär', d:'Ein Erfolg mit Level 10', g:s => [s.max >= 10 ? 1 : 0, 1]},
   {id:'p500', i:'💎', n:'500 Punkte', d:'Depotwert von 500', g:s => [s.total, 500]},
-  {id:'p1000', i:'🌟', n:'1.000 Punkte', d:'Depotwert von 1.000', g:s => [s.total, 1000]}
+  {id:'p1000', i:'🌟', n:'1.000 Punkte', d:'Depotwert von 1.000', g:s => [s.total, 1000]},
+  {id:'pro', i:'💎', n:'Pro-Investor', d:'WinStock Pro freigeschaltet', g:s => [s.pro ? 1 : 0, 1]}
 ];
 function unlocked(s){ return TROPHIES.filter(t => { const [v, goal] = t.g(s); return v >= goal; }).map(t => t.id); }
 function mood(week){
@@ -510,8 +576,31 @@ try { const r = localStorage.getItem(KEY + '.range'); if (RANGES[r] !== undefine
 /* ---------- rendering ---------- */
 function render(){
   const s = stats();
-  renderHeader(s); renderChart(); renderList(); renderTrophies(s); renderMemory();
+  renderHeader(s); renderChart(); renderList(); renderTrophies(s); renderMemory(); renderPro();
   $('#exampleBanner').hidden = !state.entries.some(e => e.ex);
+}
+
+const ownCount = () => state.entries.filter(e => !e.ex).length;
+function applyTheme(){
+  const t = (proName && THEMES.find(x => x.id === state.theme)) || THEMES[0];
+  document.documentElement.style.setProperty('--accent', t.c);
+}
+function renderPro(){
+  $('#proBadge').hidden = !proName;
+  const ps = $('#proStatus');
+  if (proName) ps.innerHTML = `<div class="pro-card"><h4>💎 Pro ist aktiv</h4><div class="note">Freigeschaltet für ${esc(proName)}. Unbegrenzt Erfolge und alle Farben.</div></div>`;
+  else { const n = ownCount(), p = Math.min(1, n / FREE_LIMIT);
+    ps.innerHTML = `<div class="limit-meter">Kostenlose Version: ${Math.min(n, FREE_LIMIT)} von ${FREE_LIMIT} Erfolgen genutzt<div class="bar"><i style="width:${(p * 100).toFixed(0)}%"></i></div></div>
+      <button class="btn btn-primary" type="button" id="btnOpenPro" style="margin-top:10px">💎 Pro freischalten</button>`; }
+  $('#swatches').innerHTML = THEMES.map(t => `<button type="button" class="swatch" style="--sw:${t.c}" data-theme="${t.id}" aria-label="Farbe ${t.name}" aria-pressed="${(proName ? state.theme : 'gruen') === t.id}" ${proName ? '' : 'disabled'}></button>`).join('')
+    + (proName ? '' : '<span class="note" style="align-self:center">Farben gibt es mit Pro</span>');
+}
+function openPro(limit){
+  $('#proLead').textContent = limit
+    ? `Du hast schon ${FREE_LIMIT} Erfolge gesammelt, stark! Die kostenlose Version reicht für ${FREE_LIMIT} Erfolge. Mit Pro geht es unbegrenzt weiter.`
+    : `Die kostenlose Version reicht für ${FREE_LIMIT} Erfolge. Mit Pro sammelst du unbegrenzt weiter und bekommst ein paar Extras.`;
+  $('#codeIn').value = ''; $('#codeErr').hidden = true;
+  openSheet('sheetPro');
 }
 
 function animateTotal(to){
@@ -572,11 +661,11 @@ function renderChart(){
   let line = '';
   pts.forEach((v, i) => { line += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); });
   const area = line + `L${x(pts.length - 1).toFixed(1)} ${H}L${x(0).toFixed(1)} ${H}Z`;
-  const col = diff > 0 ? 'var(--gain)' : 'var(--muted)';
+  const col = diff > 0 ? 'var(--accent)' : 'var(--muted)';
   let grid = '';
   for (let k = 0; k < 3; k++) { const gy = padT + k * (H - padT - padB) / 2; grid += `<line x1="0" x2="${W}" y1="${gy}" y2="${gy}" stroke="var(--line)" stroke-dasharray="2 5" stroke-width="1"/>`; }
   const ex = x(pts.length - 1), ey = y(end);
-  svg.innerHTML = `<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${diff > 0 ? '#2BD67B' : '#8592A3'}" stop-opacity=".32"/><stop offset="1" stop-color="${diff > 0 ? '#2BD67B' : '#8592A3'}" stop-opacity="0"/></linearGradient></defs>
+  svg.innerHTML = `<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:${col};stop-opacity:.32"/><stop offset="1" style="stop-color:${col};stop-opacity:0"/></linearGradient></defs>
     ${grid}<path d="${area}" fill="url(#ga)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="${ex}" cy="${ey}" r="9" fill="${col}" opacity=".2">${reduceMotion ? '' : '<animate attributeName="r" values="6;12;6" dur="2.2s" repeatCount="indefinite"/>'}</circle>
     <circle cx="${ex}" cy="${ey}" r="4.5" fill="${col}" stroke="var(--bg)" stroke-width="2"/>`;
@@ -699,6 +788,7 @@ function updateLevelUI(){
   $('#lvlEmoji').textContent = L.e; $('#lvlNum').textContent = l; $('#lvlText').textContent = L.t; $('#lvlHint').textContent = L.h;
 }
 function openAdd(id){
+  if (!id && !proName && ownCount() >= FREE_LIMIT) { openPro(true); return; }
   editingId = id || null;
   const e = id ? state.entries.find(x => x.id === id) : null;
   $('#addTitle').textContent = e ? 'Erfolg bearbeiten' : 'Neuer Erfolg';
@@ -735,7 +825,11 @@ function saveEntry(ev){
     confetti(20 + level * 12);
     setTimeout(() => {
       if (fresh.length) { confetti(160); toast(`${fresh[0].i} Neuer Pokal: <b>${esc(fresh[0].n)}</b>!`, 3600); }
-      else toast(`${LEVELS[level].e} <b>+${level} Punkte!</b> Dein Depot: ${fmt(stats().total)}`);
+      else {
+        const left = FREE_LIMIT - ownCount();
+        const hint = proName || state.entries.some(e => e.ex) || left > 3 ? '' : left > 0 ? `<br>Noch ${left} kostenlose Erfolge` : '<br>Das war dein letzter kostenloser Erfolg';
+        toast(`${LEVELS[level].e} <b>+${level} Punkte!</b> Dein Depot: ${fmt(stats().total)}${hint}`, hint ? 3600 : 2800);
+      }
     }, 150);
   } else toast('Gespeichert');
   editingId = null;
@@ -763,7 +857,7 @@ function renderFilterSheet(){
 
 /* ---------- backup ---------- */
 async function exportData(){
-  const json = JSON.stringify({app:'WinStock', version:1, exported:new Date().toISOString(), name:state.name, entries:state.entries.filter(e => !e.ex), trophies:state.trophies}, null, 1);
+  const json = JSON.stringify({app:'WinStock', version:1, exported:new Date().toISOString(), name:state.name, entries:state.entries.filter(e => !e.ex), trophies:state.trophies, pro:state.pro, theme:state.theme}, null, 1);
   const fname = 'winstock-backup-' + ymd(today()) + '.json';
   if (window.claude && window.claude.use) {
     try { const dl = await window.claude.use('downloads'); if (dl) { await dl.save({filename:fname, data:json}); toast('Backup gespeichert'); return; } }
@@ -791,6 +885,8 @@ function importData(file){
       const ids = new Set(state.entries.map(e => e.id)); let added = 0;
       for (const e of list) if (!ids.has(e.id)) { state.entries.push(e); added++; }
       if (data.name && !state.name) state.name = String(data.name).slice(0, 30);
+      if (data.pro && !proName) verifyCode(data.pro).then(n => { if (!n) return; state.pro = String(data.pro).replace(/\s+/g, ''); proName = n;
+        if (THEMES.some(t => t.id === data.theme)) state.theme = data.theme; state.trophies = unlocked(stats()); save(); applyTheme(); render(); });
       state.trophies = unlocked(stats()); state.onboarded = true;
       save(); closeSheets(); render(); toast(`<b>${added}</b> Erfolge geladen`);
     } catch (e) { toast('Diese Datei ist kein WinStock-Backup.'); }
@@ -882,10 +978,33 @@ $('#btnClearExamples').addEventListener('click', () => { clearExamples(); toast(
 $('#btnStartOwn').addEventListener('click', () => { state.name = $('#wName').value.trim(); clearExamples(); closeSheets(); render(); toast('Los geht’s! Tippe auf ＋ für deinen ersten Erfolg.', 3500); });
 $('#btnStartExamples').addEventListener('click', () => { state.name = $('#wName').value.trim(); closeSheets(); render(); });
 
+$('#proStatus').addEventListener('click', e => { if (e.target.closest('#btnOpenPro')) openPro(false); });
+$('#swatches').addEventListener('click', e => { const b = e.target.closest('.swatch'); if (!b || !proName) return;
+  state.theme = b.dataset.theme; save(); applyTheme(); renderPro(); renderChart(); });
+$('#codeIn').addEventListener('input', () => { $('#codeErr').hidden = true; });
+$('#btnPaste').addEventListener('click', async () => {
+  try { const t = await navigator.clipboard.readText(); if (t) { $('#codeIn').value = t.trim(); $('#codeErr').hidden = true; return; } } catch (e) {}
+  $('#codeIn').focus(); toast('Halte das Feld gedrückt und wähle „Einfügen“');
+});
+$('#btnUnlock').addEventListener('click', async () => {
+  const code = $('#codeIn').value, err = $('#codeErr'), btn = $('#btnUnlock');
+  if (!code.trim()) { err.textContent = 'Füge zuerst deinen Code ein.'; err.hidden = false; return; }
+  btn.disabled = true;
+  const name = await verifyCode(code);
+  btn.disabled = false;
+  if (!name) { err.textContent = 'Dieser Code funktioniert nicht. Prüfe, ob du ihn vollständig kopiert hast.'; err.hidden = false; return; }
+  state.pro = code.replace(/\s+/g, ''); proName = name;
+  if (!state.name) state.name = name;
+  state.trophies = [...new Set([...state.trophies, ...unlocked(stats())])];
+  save(); closeSheets(); applyTheme(); render();
+  confetti(220); toast(`💎 <b>Pro freigeschaltet</b> für ${esc(name)}!`, 3800);
+});
+
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(renderChart, 120); });
 
 /* ---------- start ---------- */
 render();
+if (state.pro) verifyCode(state.pro).then(n => { proName = n; if (!n) { state.pro = ''; save(); } applyTheme(); render(); });
 if (firstRun || !state.onboarded) setTimeout(() => openSheet('sheetWelcome'), 400);
 if ('serviceWorker' in navigator && document.documentElement.classList.contains('standalone') && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
