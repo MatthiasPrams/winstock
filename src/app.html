@@ -1,0 +1,894 @@
+<title>WinStock</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: one phone column – broker-style hero with mood + chart, holdings list of successes, fixed tab bar with a central add button */
+:root{
+  --bg:#0A0E13; --surface:#11171F; --surface-2:#18212C; --line:#222C38;
+  --fg:#ECF1F7; --muted:#8592A3;
+  --gain:#2BD67B; --blue:#4DA3FF; --gold:#FFC23D; --danger:#FF5C6C;
+  --display:'Space Grotesk',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  --body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--body);font-size:15px;line-height:1.4;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));}
+.standalone body{padding-top:env(safe-area-inset-top,0px)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+#app{max-width:520px;margin:0 auto}
+.num{font-family:var(--display);font-variant-numeric:tabular-nums}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;padding-block:14px 6px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--gain),var(--blue));display:grid;place-items:center}
+.logo svg{width:20px;height:20px;stroke:var(--bg);stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.top-actions{display:flex;align-items:center;gap:8px}
+.streak{display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:999px;background:var(--surface-2);font-weight:600;font-size:14px}
+.streak.off{color:var(--muted)}
+.icon-btn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--muted)}
+.icon-btn:hover{background:var(--surface-2);color:var(--fg)}
+.icon-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+.banner{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-block:8px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--gold) 12%,transparent);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);font-size:13px}
+.banner button{flex:none;font-weight:700;color:var(--gold);font-size:13px}
+
+/* Hero */
+.hero{padding-block:10px 4px}
+.hero-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.value{display:flex;align-items:baseline;gap:6px;margin-top:2px}
+.value .big{font-family:var(--display);font-variant-numeric:tabular-nums;font-size:52px;font-weight:700;letter-spacing:-.03em;line-height:1.05}
+.value .unit{font-size:16px;color:var(--muted);font-weight:600}
+.change{margin-top:4px;font-weight:600;font-size:15px;color:var(--gain);font-variant-numeric:tabular-nums}
+.change.flat{color:var(--muted)}
+.change .per{color:var(--muted);font-weight:500}
+.mood{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;width:96px;text-align:center}
+.mood .face{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:42px;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--gain) 22%,var(--surface-2)),var(--surface-2) 70%);border:1px solid var(--line);transition:transform .3s}
+.mood:hover .face{transform:scale(1.06) rotate(-4deg)}
+.mood .face.pop{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.mood .mtext{font-size:12px;color:var(--muted);font-weight:600;line-height:1.2}
+.chart-wrap{position:relative;height:150px;margin-top:10px}
+#chart{width:100%;height:100%;display:block;overflow:visible}
+.ranges{display:flex;gap:4px;justify-content:space-between;margin-top:8px}
+.ranges button{flex:1;padding:7px 0;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted)}
+.ranges button[aria-selected="true"]{background:var(--surface-2);color:var(--gain)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.stat .l{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.stat .v{font-family:var(--display);font-size:20px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.memory{display:flex;gap:12px;align-items:center;width:100%;text-align:left;margin-top:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(120deg,color-mix(in srgb,var(--blue) 16%,var(--surface)),var(--surface));border:1px solid var(--line)}
+.memory .mi{font-size:26px}
+.memory .mt{font-size:12px;color:var(--blue);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.memory .mb{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.memory > span:last-child{min-width:0}
+
+/* Search + filter chips */
+.search{display:flex;gap:8px;margin-top:16px}
+.search input{flex:1;min-width:0}
+.search button{font-weight:600;color:var(--blue);padding-inline:6px}
+.chips-active{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip-x{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--surface-2);font-size:13px;font-weight:600}
+.chip-x.reset{background:none;color:var(--blue)}
+
+/* List */
+.list-head{display:flex;align-items:baseline;justify-content:space-between;margin-top:22px}
+.list-head h2{font-family:var(--display);font-size:20px;margin:0;letter-spacing:-.01em}
+.list-head span{color:var(--muted);font-size:13px}
+.month{display:flex;justify-content:space-between;padding:16px 2px 6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.month .ms{color:var(--gain)}
+.row{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;padding:11px 2px;border-bottom:1px solid var(--line)}
+.row:hover{background:color-mix(in srgb,var(--surface-2) 60%,transparent)}
+.t-green{--t:var(--gain)} .t-blue{--t:var(--blue)} .t-gold{--t:var(--gold)}
+.ico{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:22px;background:var(--surface-2);background:color-mix(in srgb,var(--t) 14%,var(--surface))}
+.mid{min-width:0;display:flex;flex-direction:column}
+.mid .title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mid .sub{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pts{font-family:var(--display);font-weight:700;font-size:17px;color:var(--t);font-variant-numeric:tabular-nums}
+.lvl{display:flex;gap:2px}
+.lvl i{width:4px;height:8px;border-radius:2px;background:var(--line)}
+.lvl i.on{background:var(--t)}
+.empty{text-align:center;padding:36px 12px;color:var(--muted)}
+.empty .ei{font-size:48px;margin-bottom:8px}
+.empty b{display:block;color:var(--fg);font-size:17px;margin-bottom:4px}
+
+/* Trophies view */
+.vt-head{display:flex;align-items:baseline;justify-content:space-between;padding-block:14px 4px}
+.vt-head h2{font-family:var(--display);font-size:26px;margin:0}
+.vt-head span{color:var(--muted);font-weight:600}
+.next-goal{margin-top:10px;padding:14px;border-radius:16px;background:linear-gradient(120deg,color-mix(in srgb,var(--gold) 18%,var(--surface)),var(--surface));border:1px solid var(--line)}
+.next-goal .l{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.next-goal .t{font-family:var(--display);font-size:18px;font-weight:700;margin-top:2px}
+.bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;border-radius:8px;background:var(--gold)}
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+.trophy{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;min-width:0}
+.trophy .ti{font-size:34px;line-height:1}
+.trophy .tn{font-weight:700;margin-top:8px}
+.trophy .td{font-size:12px;color:var(--muted);margin-top:2px}
+.trophy .bar{height:5px;margin-top:10px}
+.trophy .tp{font-size:11px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.trophy.locked .ti{filter:grayscale(1);opacity:.45}
+.trophy.won{border-color:color-mix(in srgb,var(--gold) 45%,var(--line));background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 10%,var(--surface)),var(--surface))}
+.trophy.won .tp{color:var(--gold);font-weight:700}
+.sec-title{font-family:var(--display);font-size:18px;margin:26px 0 6px}
+.catbar{display:grid;grid-template-columns:28px 92px 1fr 44px;gap:8px;align-items:center;padding-block:6px;font-size:14px}
+.catbar .bar{margin:0;height:10px}
+.catbar .bar i{background:linear-gradient(90deg,var(--gain),var(--blue))}
+.catbar .cv{text-align:right;font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* Tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(10,14,19,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabbar .inner{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;height:64px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding-block:8px;color:var(--muted);font-size:11px;font-weight:600;position:relative}
+.tab svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tab.active{color:var(--fg)}
+.tab .dot{position:absolute;top:6px;right:calc(50% - 18px);min-width:16px;height:16px;border-radius:8px;background:var(--blue);color:var(--bg);font-size:10px;font-weight:800;display:grid;place-items:center;padding-inline:4px}
+.fab-wrap{display:flex;justify-content:center;align-items:flex-start;height:100%}
+.fab{width:62px;height:62px;border-radius:50%;margin-top:-20px;background:linear-gradient(135deg,var(--gain),#1FB8A0);display:grid;place-items:center;box-shadow:0 8px 24px color-mix(in srgb,var(--gain) 40%,transparent),0 0 0 6px var(--bg);transition:transform .15s}
+.fab:active{transform:scale(.92)}
+.fab svg{width:30px;height:30px;stroke:#04210F;stroke-width:3;fill:none;stroke-linecap:round}
+
+/* Sheets */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+.backdrop.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;max-height:92%;overflow-y:auto;z-index:50;background:var(--surface);border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;
+  padding:8px max(18px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));
+  transform:translateY(105%);visibility:hidden;transition:transform .3s cubic-bezier(.2,.9,.3,1),visibility 0s .3s}
+.sheet.open{transform:none;visibility:visible;transition:transform .3s cubic-bezier(.2,.9,.3,1),visibility 0s}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 12px}
+.sheet h3{font-family:var(--display);font-size:22px;margin:0 0 14px;letter-spacing:-.01em}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field > label,.flabel{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+input[type=text],input[type=search],input[type=date],textarea{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--fg);font:inherit;font-size:16px}
+textarea{resize:vertical;min-height:70px}
+input[type=date]{min-height:48px}
+.err{color:var(--danger);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);font-size:14px;font-weight:600}
+.chip[aria-pressed="true"]{border-color:var(--gain);background:color-mix(in srgb,var(--gain) 16%,var(--surface-2));color:var(--fg)}
+
+.lvl-pick{border-radius:16px;padding:14px;background:var(--surface-2);border:1px solid var(--line)}
+.lvl-show{display:flex;align-items:center;gap:14px}
+.lvl-show .le{font-size:46px;line-height:1;transition:transform .2s}
+.lvl-show .ln{font-family:var(--display);font-size:44px;font-weight:700;line-height:1;color:var(--c);font-variant-numeric:tabular-nums;min-width:2ch}
+.lvl-show .lt{font-weight:700;font-size:17px}
+.lvl-show .lh{font-size:13px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;margin-top:10px}
+input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:10px;background:linear-gradient(90deg,var(--c) var(--p),var(--line) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#fff;border:5px solid var(--c);margin-top:-10px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-track{height:10px;border-radius:10px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:10px;border-radius:10px;background:var(--c)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:5px solid var(--c)}
+.ticks{display:flex;justify-content:space-between;padding-inline:11px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ticks-l{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px}
+
+.btn{display:block;width:100%;padding:15px;border-radius:14px;font-weight:700;font-size:16px;text-align:center}
+.btn-primary{background:var(--gain);color:#04210F}
+.btn-ghost{background:var(--surface-2);color:var(--fg)}
+.btn-danger{background:color-mix(in srgb,var(--danger) 16%,var(--surface-2));color:var(--danger)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.note{font-size:13px;color:var(--muted)}
+
+.detail-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.detail-top .ico{width:60px;height:60px;font-size:30px;border-radius:18px}
+.detail-top h3{margin:0;font-size:21px;word-break:break-word}
+.detail-top .sub{color:var(--muted);font-size:14px}
+.dlevel{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:16px;background:var(--surface-2);margin-bottom:14px}
+.dlevel .pts{font-size:30px}
+.dlevel .lvl i{width:8px;height:18px;border-radius:3px}
+.dnote{white-space:pre-wrap;word-break:break-word;padding:12px 14px;border-radius:12px;border:1px solid var(--line);margin-bottom:14px}
+
+/* Toast + confetti */
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);z-index:70;background:var(--surface-2);border:1px solid var(--line);padding:12px 18px;border-radius:999px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast b{color:var(--gain)}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="app">
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg></span>WinStock</div>
+    <div class="top-actions">
+      <span id="streak" class="streak" title="Tage in Folge mit einem Erfolg">🔥 0</span>
+      <button id="btnSettings" class="icon-btn" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+  </header>
+
+  <div id="exampleBanner" class="banner" hidden><span>Das sind Beispiel-Erfolge zum Ausprobieren.</span><button id="btnClearExamples" type="button">Eigene starten</button></div>
+
+  <section id="viewDepot">
+    <div class="hero">
+      <div class="hero-row">
+        <div>
+          <div class="eyebrow" id="greeting">Dein Depotwert</div>
+          <div class="value"><span class="big" id="total">0</span><span class="unit">Punkte</span></div>
+          <div id="change" class="change">▲ +0</div>
+        </div>
+        <button class="mood" id="mood" type="button" aria-label="Deine Stimmung"><span class="face" id="moodFace">🙂</span><span class="mtext" id="moodText"></span></button>
+      </div>
+      <div class="chart-wrap"><svg id="chart" role="img" aria-label="Verlauf deines Depotwerts"></svg></div>
+      <div class="ranges" role="tablist" id="ranges">
+        <button type="button" role="tab" data-r="1W">1W</button>
+        <button type="button" role="tab" data-r="1M">1M</button>
+        <button type="button" role="tab" data-r="3M">3M</button>
+        <button type="button" role="tab" data-r="1J">1J</button>
+        <button type="button" role="tab" data-r="Max">Max</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="l">Erfolge</div><div class="v" id="stCount">0</div></div>
+      <div class="stat"><div class="l">Ø Level</div><div class="v" id="stAvg">–</div></div>
+      <div class="stat"><div class="l">Pokale</div><div class="v" id="stTrophies">0</div></div>
+    </div>
+
+    <button id="memory" class="memory" type="button" hidden></button>
+
+    <div id="searchBar" class="search" hidden>
+      <input id="q" type="search" placeholder="Erfolge durchsuchen …" autocomplete="off" aria-label="Erfolge durchsuchen">
+      <button id="btnSearchClose" type="button">Fertig</button>
+    </div>
+    <div id="activeFilters" class="chips-active" hidden></div>
+
+    <div class="list-head"><h2>Meine Erfolge</h2><span id="count"></span></div>
+    <div id="list"></div>
+  </section>
+
+  <section id="viewTrophies" hidden>
+    <div class="vt-head"><h2>Pokale</h2><span id="tCount"></span></div>
+    <div id="nextGoal" class="next-goal"></div>
+    <div id="tgrid" class="tgrid"></div>
+    <h3 class="sec-title">Punkte nach Bereich</h3>
+    <div id="catbars"></div>
+  </section>
+</div>
+
+<nav class="tabbar" aria-label="Navigation">
+  <div class="inner">
+    <button class="tab active" id="tabDepot" type="button"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg>Depot</button>
+    <button class="tab" id="tabSearch" type="button"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>Suchen</button>
+    <div class="fab-wrap"><button class="fab" id="tabAdd" type="button" aria-label="Neuen Erfolg eintragen"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <button class="tab" id="tabFilter" type="button"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filter</button>
+    <button class="tab" id="tabTrophies" type="button"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Pokale</button>
+  </div>
+</nav>
+
+<div class="backdrop" id="backdrop"></div>
+
+<!-- Add / edit -->
+<form class="sheet" id="sheetAdd" novalidate>
+  <div class="grab"></div>
+  <h3 id="addTitle">Neuer Erfolg</h3>
+  <div class="field">
+    <label for="fTitle">Was hast du geschafft?</label>
+    <input type="text" id="fTitle" maxlength="80" placeholder="z. B. Mathe-Test mit 2 geschrieben" autocomplete="off">
+    <span class="err" id="fTitleErr" hidden>Gib deinem Erfolg einen Namen.</span>
+  </div>
+  <div class="field">
+    <span class="flabel">Wie groß war der Erfolg?</span>
+    <div class="lvl-pick" id="lvlPick">
+      <div class="lvl-show"><span class="le" id="lvlEmoji">😄</span><span class="ln" id="lvlNum">5</span><span><span class="lt" id="lvlText">Super</span><br><span class="lh" id="lvlHint"></span></span></div>
+      <input type="range" id="fLevel" min="1" max="10" step="1" value="5" aria-label="Größe des Erfolgs von 1 bis 10">
+      <div class="ticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <div class="ticks-l"><span>kleiner Erfolg</span><span>großer Erfolg</span></div>
+    </div>
+  </div>
+  <div class="field">
+    <span class="flabel">Bereich</span>
+    <div class="chips" id="fCats"></div>
+  </div>
+  <div class="field">
+    <label for="fDate">Wann?</label>
+    <input type="date" id="fDate">
+  </div>
+  <div class="field">
+    <label for="fNote">Notiz (freiwillig)</label>
+    <textarea id="fNote" maxlength="500" placeholder="Wie hat es sich angefühlt? Wer hat geholfen?"></textarea>
+  </div>
+  <button class="btn btn-primary" type="submit" id="btnSave">Ins Depot legen</button>
+</form>
+
+<!-- Detail -->
+<div class="sheet" id="sheetDetail" role="dialog" aria-label="Erfolg"><div class="grab"></div><div id="detailBody"></div></div>
+
+<!-- Filter -->
+<div class="sheet" id="sheetFilter" role="dialog" aria-label="Filter">
+  <div class="grab"></div>
+  <h3>Filtern &amp; sortieren</h3>
+  <div class="field"><span class="flabel">Größe</span><div class="chips" id="filSizes"></div></div>
+  <div class="field"><span class="flabel">Bereich</span><div class="chips" id="filCats"></div></div>
+  <div class="field"><span class="flabel">Sortieren</span><div class="chips" id="filSort"></div></div>
+  <div class="btn-row"><button class="btn btn-ghost" type="button" id="btnFilterReset">Zurücksetzen</button><button class="btn btn-primary" type="button" id="btnFilterDone">Fertig</button></div>
+</div>
+
+<!-- Settings -->
+<div class="sheet" id="sheetSettings" role="dialog" aria-label="Einstellungen">
+  <div class="grab"></div>
+  <h3>Einstellungen</h3>
+  <div class="field"><label for="sName">Dein Name</label><input type="text" id="sName" maxlength="30" placeholder="Dein Name" autocomplete="off"></div>
+  <div class="stack">
+    <span class="flabel">Sicherung</span>
+    <p class="note" style="margin:0">Deine Erfolge sind nur auf diesem Gerät gespeichert. Mach ab und zu ein Backup, damit nichts verloren geht.</p>
+    <button class="btn btn-ghost" type="button" id="btnExport">Backup speichern</button>
+    <label class="btn btn-ghost" for="fileImport" style="cursor:pointer">Backup laden</label>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <span class="flabel" style="margin-top:12px">Sonstiges</span>
+    <button class="btn btn-ghost" type="button" id="btnExamples">Beispiel-Erfolge anzeigen</button>
+    <button class="btn btn-danger" type="button" id="btnWipe">Alle Erfolge löschen</button>
+  </div>
+</div>
+
+<!-- Welcome -->
+<div class="sheet" id="sheetWelcome" role="dialog" aria-label="Willkommen">
+  <div class="grab"></div>
+  <div style="font-size:52px;line-height:1;margin-bottom:8px">🚀</div>
+  <h3 style="font-size:26px;margin-bottom:6px">Willkommen bei WinStock!</h3>
+  <p class="note" style="font-size:15px;margin:0 0 16px">Hier sammelst du deine Erfolge wie Aktien in einem Depot. Jeder Erfolg bringt 1 bis 10 Punkte, und dein Depot wächst mit jedem Eintrag. Auch kleine Erfolge zählen!</p>
+  <div class="field"><label for="wName">Wie heißt du?</label><input type="text" id="wName" maxlength="30" placeholder="Dein Name" autocomplete="off"></div>
+  <div class="stack">
+    <button class="btn btn-primary" type="button" id="btnStartOwn">Mit eigenen Erfolgen starten</button>
+    <button class="btn btn-ghost" type="button" id="btnStartExamples">Erst mal mit Beispielen umschauen</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+const KEY = 'winstock.v1';
+
+const CATS = [
+  {id:'schule', name:'Schule', icon:'📚'},
+  {id:'sport', name:'Sport', icon:'⚽'},
+  {id:'hobby', name:'Hobby', icon:'🎸'},
+  {id:'familie', name:'Familie', icon:'🏠'},
+  {id:'freunde', name:'Freunde', icon:'🤝'},
+  {id:'ich', name:'Ich selbst', icon:'💪'},
+  {id:'arbeit', name:'Arbeit', icon:'💼'},
+  {id:'sonst', name:'Sonstiges', icon:'⭐'}
+];
+const catById = Object.fromEntries(CATS.map(c => [c.id, c]));
+const LEVELS = [null,
+  {e:'🙂', t:'Kleiner Schritt', h:'Jeder Schritt zählt'},
+  {e:'😊', t:'Gut gemacht', h:'Etwas geschafft, das du dir vorgenommen hast'},
+  {e:'😃', t:'Stark', h:'Da warst du dran'},
+  {e:'😄', t:'Richtig gut', h:'Darauf kannst du stolz sein'},
+  {e:'😁', t:'Super', h:'Hat Mühe gekostet und geklappt'},
+  {e:'🤩', t:'Klasse Leistung', h:'Das erzählst du gern weiter'},
+  {e:'🥳', t:'Großer Erfolg', h:'Lange drauf hingearbeitet'},
+  {e:'🏅', t:'Riesig', h:'Ein echter Meilenstein'},
+  {e:'🏆', t:'Meisterleistung', h:'Daran erinnerst du dich noch lange'},
+  {e:'👑', t:'Legendär!', h:'Einer der größten Erfolge überhaupt'}
+];
+const TIER_COLOR = {green:'#2BD67B', blue:'#4DA3FF', gold:'#FFC23D'};
+const tier = l => l >= 8 ? 'gold' : l >= 4 ? 'blue' : 'green';
+const tierName = {green:'Klein (1–3)', blue:'Mittel (4–7)', gold:'Groß (8–10)'};
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const MON_S = ['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sep.','Okt.','Nov.','Dez.'];
+const RANGES = {'1W':7, '1M':30, '3M':90, '1J':365, 'Max':0};
+const RANGE_LABEL = {'1W':'diese Woche', '1M':'im letzten Monat', '3M':'in 3 Monaten', '1J':'im letzten Jahr', 'Max':'insgesamt'};
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- helpers ---------- */
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const parse = s => { const [a, b, c] = s.split('-').map(Number); return new Date(a, b - 1, c); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const daysAgo = s => Math.round((today() - parse(s)) / 864e5);
+const fmt = n => Math.round(n).toLocaleString('de-DE');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+function fmtDate(s){
+  const d = parse(s), t = today(), diff = daysAgo(s);
+  if (diff === 0) return 'Heute';
+  if (diff === 1) return 'Gestern';
+  return d.getDate() + '. ' + MON_S[d.getMonth()] + (d.getFullYear() !== t.getFullYear() ? ' ' + d.getFullYear() : '');
+}
+function relAgo(s){
+  const n = daysAgo(s);
+  if (n < 14) return 'Vor ' + n + ' Tagen';
+  if (n < 60) return 'Vor ' + Math.round(n / 7) + ' Wochen';
+  if (n < 365) return 'Vor ' + Math.round(n / 30) + ' Monaten';
+  const y = Math.round(n / 365); return 'Vor ' + y + (y === 1 ? ' Jahr' : ' Jahren');
+}
+const genitive = n => /[sßxz]$/i.test(n) ? n + '’' : n + 's';
+
+/* ---------- storage ---------- */
+function blank(){ return {name:'', entries:[], trophies:[], onboarded:false}; }
+function load(){
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.entries)) return Object.assign(blank(), s);
+  } catch (e) {}
+  return null;
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+function cleanEntry(e){
+  if (!e || typeof e.title !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(e.date || '')) return null;
+  const level = Math.min(10, Math.max(1, Math.round(Number(e.level) || 1)));
+  return {id: String(e.id || uid()), title: e.title.slice(0, 80), level, cat: catById[e.cat] ? e.cat : 'sonst',
+    date: e.date, note: typeof e.note === 'string' ? e.note.slice(0, 500) : '', created: Number(e.created) || Date.now(), ex: !!e.ex};
+}
+
+function examples(){
+  const L = [
+    [0,'Mathe-Test mit 2+ zurückbekommen','schule',7,'Hab drei Tage vorher angefangen zu lernen – hat sich gelohnt!'],
+    [1,'Zimmer aufgeräumt, ohne dass mich jemand erinnert','ich',2,''],
+    [2,'Tor beim Fußballtraining','sport',5,''],
+    [4,'Oma beim Einkaufen geholfen','familie',4,''],
+    [6,'Erstes ganzes Lied auf der Gitarre','hobby',7,'Komplett ohne Fehler durchgespielt!'],
+    [9,'Referat vor der ganzen Klasse gehalten','schule',8,'War total nervös, aber es lief super.'],
+    [12,'Streit mit einem Freund geklärt','freunde',6,''],
+    [15,'5 km am Stück gelaufen','sport',6,''],
+    [19,'Eine Woche lang früh aufgestanden','ich',4,''],
+    [23,'Vokabeln für den Test gelernt','schule',2,''],
+    [27,'Neuen Mitschüler zum Spielen eingeladen','freunde',4,''],
+    [34,'Schwimmabzeichen in Gold geschafft','sport',9,'Lange drauf hingearbeitet!'],
+    [41,'Abendessen für die Familie gekocht','familie',5,''],
+    [48,'Hausaufgaben vor dem Zocken erledigt','ich',3,''],
+    [63,'Großes Lego-Modell fertig gebaut','hobby',5,''],
+    [80,'Zeugnis mit Lob für Mitarbeit','schule',8,'']
+  ];
+  const t = today();
+  return L.map((r, i) => ({id:'ex' + i, title:r[1], cat:r[2], level:r[3], note:r[4], date:ymd(addDays(t, -r[0])), created:Date.now() - i, ex:true}));
+}
+
+/* ---------- stats & trophies ---------- */
+function stats(){
+  const E = state.entries, n = E.length;
+  const total = E.reduce((s, e) => s + e.level, 0);
+  const t = today(), wStart = ymd(addDays(t, -6));
+  const week = E.filter(e => e.date >= wStart).reduce((s, e) => s + e.level, 0);
+  const days = [...new Set(E.map(e => e.date))].sort();
+  // current streak
+  const set = new Set(days);
+  let d = t; if (!set.has(ymd(d))) d = addDays(d, -1);
+  let streak = 0; while (set.has(ymd(d))) { streak++; d = addDays(d, -1); }
+  // best streak
+  let best = 0, run = 0, prev = null;
+  for (const s of days) { run = (prev && daysAgo(prev) - daysAgo(s) === 1) ? run + 1 : 1; best = Math.max(best, run); prev = s; }
+  // most entries in any 7-day window
+  const sorted = E.map(e => parse(e.date).getTime()).sort((a, b) => a - b);
+  let bestWeek = 0, j = 0;
+  for (let i = 0; i < sorted.length; i++) { while (sorted[i] - sorted[j] > 6 * 864e5) j++; bestWeek = Math.max(bestWeek, i - j + 1); }
+  const cats = new Set(E.map(e => e.cat)).size;
+  const max = E.reduce((m, e) => Math.max(m, e.level), 0);
+  return {n, total, week, streak, best, bestWeek, cats, max};
+}
+const TROPHIES = [
+  {id:'first', i:'🌱', n:'Erster Erfolg', d:'Trag deinen ersten Erfolg ein', g:s => [s.n, 1]},
+  {id:'n10', i:'🎯', n:'Zehner-Pack', d:'10 Erfolge eingetragen', g:s => [s.n, 10]},
+  {id:'p50', i:'🥉', n:'50 Punkte', d:'Depotwert von 50', g:s => [s.total, 50]},
+  {id:'s3', i:'🔥', n:'Am Ball', d:'3 Tage in Folge ein Erfolg', g:s => [s.best, 3]},
+  {id:'p100', i:'🥈', n:'100 Punkte', d:'Depotwert von 100', g:s => [s.total, 100]},
+  {id:'week5', i:'🚀', n:'Raketenwoche', d:'5 Erfolge in 7 Tagen', g:s => [s.bestWeek, 5]},
+  {id:'cats', i:'🌈', n:'Allrounder', d:'Erfolge in 5 verschiedenen Bereichen', g:s => [s.cats, 5]},
+  {id:'big', i:'🏅', n:'Großer Wurf', d:'Ein Erfolg mit Level 8 oder mehr', g:s => [s.max >= 8 ? 1 : 0, 1]},
+  {id:'p250', i:'🥇', n:'250 Punkte', d:'Depotwert von 250', g:s => [s.total, 250]},
+  {id:'s7', i:'⚡', n:'Wochen-Serie', d:'7 Tage in Folge ein Erfolg', g:s => [s.best, 7]},
+  {id:'n50', i:'📈', n:'Erfolgs-Sammler', d:'50 Erfolge eingetragen', g:s => [s.n, 50]},
+  {id:'ten', i:'👑', n:'Legendär', d:'Ein Erfolg mit Level 10', g:s => [s.max >= 10 ? 1 : 0, 1]},
+  {id:'p500', i:'💎', n:'500 Punkte', d:'Depotwert von 500', g:s => [s.total, 500]},
+  {id:'p1000', i:'🌟', n:'1.000 Punkte', d:'Depotwert von 1.000', g:s => [s.total, 1000]}
+];
+function unlocked(s){ return TROPHIES.filter(t => { const [v, goal] = t.g(s); return v >= goal; }).map(t => t.id); }
+function mood(week){
+  if (week === 0) return ['😴', 'Zeit für einen neuen Erfolg!'];
+  if (week < 6) return ['🙂', 'Guter Anfang'];
+  if (week < 15) return ['😄', 'Läuft bei dir!'];
+  if (week < 30) return ['😎', 'Starke Woche!'];
+  return ['🤩', 'Rekordverdächtig!'];
+}
+
+/* ---------- view state ---------- */
+let state = load();
+const firstRun = !state;
+if (!state) { state = blank(); state.entries = examples(); state.trophies = unlocked(stats()); }
+let range = '1M', view = 'depot', q = '', editingId = null, detailId = null, formCat = 'schule', shownTotal = 0;
+const filter = {cats:new Set(), sizes:new Set(), sort:'new'};
+try { const r = localStorage.getItem(KEY + '.range'); if (RANGES[r] !== undefined) range = r; } catch (e) {}
+
+/* ---------- rendering ---------- */
+function render(){
+  const s = stats();
+  renderHeader(s); renderChart(); renderList(); renderTrophies(s); renderMemory();
+  $('#exampleBanner').hidden = !state.entries.some(e => e.ex);
+}
+
+function animateTotal(to){
+  const el = $('#total'), from = shownTotal; shownTotal = to;
+  if (reduceMotion || from === to) { el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 700;
+  (function step(t){ const p = Math.min(1, (t - t0) / dur), k = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(from + (to - from) * k); if (p < 1) requestAnimationFrame(step); })(t0);
+}
+
+function renderHeader(s){
+  $('#greeting').textContent = state.name ? genitive(state.name) + ' Depotwert' : 'Dein Depotwert';
+  animateTotal(s.total);
+  const [face, text] = mood(s.week);
+  const mf = $('#moodFace');
+  if (mf.textContent !== face) { mf.textContent = face; mf.classList.remove('pop'); void mf.offsetWidth; mf.classList.add('pop'); }
+  $('#moodText').textContent = text;
+  $('#mood').setAttribute('aria-label', 'Stimmung: ' + text + ' (' + s.week + ' Punkte in den letzten 7 Tagen)');
+  const st = $('#streak');
+  st.textContent = '🔥 ' + s.streak; st.classList.toggle('off', s.streak === 0);
+  st.title = s.streak ? s.streak + (s.streak === 1 ? ' Tag' : ' Tage') + ' in Folge mit einem Erfolg' : 'Trag heute einen Erfolg ein, um eine Serie zu starten';
+  $('#stCount').textContent = fmt(s.n);
+  $('#stAvg').textContent = s.n ? (s.total / s.n).toLocaleString('de-DE', {maximumFractionDigits:1, minimumFractionDigits:1}) : '–';
+  $('#stTrophies').textContent = unlocked(s).length + ' / ' + TROPHIES.length;
+  document.querySelectorAll('#ranges button').forEach(b => b.setAttribute('aria-selected', b.dataset.r === range));
+}
+
+function series(){
+  const t = today(), n = RANGES[range];
+  let start;
+  if (n) start = addDays(t, -(n - 1));
+  else {
+    const first = state.entries.reduce((m, e) => e.date < m ? e.date : m, ymd(t));
+    start = parse(first); if (daysAgo(first) < 6) start = addDays(t, -6);
+  }
+  const s0 = ymd(start), tEnd = ymd(t), byDay = {};
+  let base = 0;
+  for (const e of state.entries) {
+    if (e.date < s0) base += e.level;
+    else if (e.date <= tEnd) byDay[e.date] = (byDay[e.date] || 0) + e.level;
+  }
+  const pts = [base]; let v = base;
+  for (let d = new Date(start); d <= t; d = addDays(d, 1)) { v += byDay[ymd(d)] || 0; pts.push(v); }
+  return {base, pts, start};
+}
+
+function renderChart(){
+  const svg = $('#chart');
+  const W = Math.max(200, svg.clientWidth || 340), H = svg.clientHeight || 150;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const {base, pts} = series();
+  const end = pts[pts.length - 1], diff = end - base;
+  let lo = Math.min(...pts), hi = Math.max(...pts);
+  if (hi === lo) { hi = lo + 10; }
+  const padT = 16, padB = 8, padR = 10;
+  const x = i => i / (pts.length - 1) * (W - padR - 2) + 1;
+  const y = v => H - padB - (v - lo) / (hi - lo) * (H - padT - padB);
+  let line = '';
+  pts.forEach((v, i) => { line += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); });
+  const area = line + `L${x(pts.length - 1).toFixed(1)} ${H}L${x(0).toFixed(1)} ${H}Z`;
+  const col = diff > 0 ? 'var(--gain)' : 'var(--muted)';
+  let grid = '';
+  for (let k = 0; k < 3; k++) { const gy = padT + k * (H - padT - padB) / 2; grid += `<line x1="0" x2="${W}" y1="${gy}" y2="${gy}" stroke="var(--line)" stroke-dasharray="2 5" stroke-width="1"/>`; }
+  const ex = x(pts.length - 1), ey = y(end);
+  svg.innerHTML = `<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${diff > 0 ? '#2BD67B' : '#8592A3'}" stop-opacity=".32"/><stop offset="1" stop-color="${diff > 0 ? '#2BD67B' : '#8592A3'}" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<path d="${area}" fill="url(#ga)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${ex}" cy="${ey}" r="9" fill="${col}" opacity=".2">${reduceMotion ? '' : '<animate attributeName="r" values="6;12;6" dur="2.2s" repeatCount="indefinite"/>'}</circle>
+    <circle cx="${ex}" cy="${ey}" r="4.5" fill="${col}" stroke="var(--bg)" stroke-width="2"/>`;
+  const ch = $('#change');
+  const pct = base > 0 ? ' (+' + (diff / base * 100).toLocaleString('de-DE', {maximumFractionDigits:1}) + ' %)' : '';
+  if (diff > 0) { ch.className = 'change'; ch.innerHTML = `▲ +${fmt(diff)}${pct} <span class="per">${RANGE_LABEL[range]}</span>`; }
+  else { ch.className = 'change flat'; ch.innerHTML = `± 0 <span class="per">${RANGE_LABEL[range]}</span>`; }
+}
+
+function filtered(){
+  let arr = state.entries.slice();
+  const qq = q.trim().toLowerCase();
+  if (qq) arr = arr.filter(e => (e.title + ' ' + e.note + ' ' + catById[e.cat].name).toLowerCase().includes(qq));
+  if (filter.cats.size) arr = arr.filter(e => filter.cats.has(e.cat));
+  if (filter.sizes.size) arr = arr.filter(e => filter.sizes.has(tier(e.level)));
+  const byNew = (a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : b.created - a.created;
+  if (filter.sort === 'big') arr.sort((a, b) => b.level - a.level || byNew(a, b));
+  else if (filter.sort === 'old') arr.sort((a, b) => -byNew(a, b));
+  else arr.sort(byNew);
+  return arr;
+}
+
+function rowHtml(e){
+  const t = tier(e.level), c = catById[e.cat];
+  let bars = ''; for (let i = 1; i <= 10; i++) bars += `<i class="${i <= e.level ? 'on' : ''}"></i>`;
+  return `<button type="button" class="row t-${t}" data-id="${esc(e.id)}">
+    <span class="ico" aria-hidden="true">${c.icon}</span>
+    <span class="mid"><span class="title">${esc(e.title)}</span><span class="sub">${esc(c.name)} · ${fmtDate(e.date)}</span></span>
+    <span class="right"><span class="pts">+${e.level}</span><span class="lvl" aria-label="Level ${e.level} von 10">${bars}</span></span></button>`;
+}
+
+function renderList(){
+  const arr = filtered(), list = $('#list'), total = state.entries.length;
+  const active = q.trim() || filter.cats.size || filter.sizes.size;
+  $('#count').textContent = active ? arr.length + ' von ' + total : total + (total === 1 ? ' Erfolg' : ' Erfolge');
+  if (!total) {
+    list.innerHTML = `<div class="empty"><div class="ei">🌱</div><b>Dein Depot ist noch leer</b>Tippe unten auf ＋ und trag deinen ersten Erfolg ein. Auch kleine Erfolge zählen!</div>`;
+  } else if (!arr.length) {
+    list.innerHTML = `<div class="empty"><div class="ei">🔍</div><b>Nichts gefunden</b>Probier einen anderen Suchbegriff oder setz die Filter zurück.</div>`;
+  } else if (filter.sort === 'big') {
+    list.innerHTML = arr.map(rowHtml).join('');
+  } else {
+    let html = '', cur = null, group = [];
+    const flush = () => { if (!group.length) return; const d = parse(group[0].date);
+      const sum = group.reduce((s, e) => s + e.level, 0);
+      html += `<div class="month"><span>${MONTHS[d.getMonth()]} ${d.getFullYear()}</span><span class="ms">+${fmt(sum)}</span></div>` + group.map(rowHtml).join(''); group = []; };
+    for (const e of arr) { const k = e.date.slice(0, 7); if (k !== cur) { flush(); cur = k; } group.push(e); }
+    flush(); list.innerHTML = html;
+  }
+  // active filter chips
+  const af = $('#activeFilters'); let chips = '';
+  filter.sizes.forEach(s => chips += `<button type="button" class="chip-x" data-rm="size:${s}">${tierName[s]} ✕</button>`);
+  filter.cats.forEach(c => chips += `<button type="button" class="chip-x" data-rm="cat:${c}">${catById[c].icon} ${catById[c].name} ✕</button>`);
+  if (chips) chips += `<button type="button" class="chip-x reset" data-rm="all">Alle entfernen</button>`;
+  af.innerHTML = chips; af.hidden = !chips;
+  const nf = filter.cats.size + filter.sizes.size;
+  $('#tabFilter').querySelector('.dot')?.remove();
+  if (nf) $('#tabFilter').insertAdjacentHTML('beforeend', `<span class="dot">${nf}</span>`);
+}
+
+function renderMemory(){
+  const m = $('#memory');
+  const old = state.entries.filter(e => daysAgo(e.date) >= 14 && e.level >= 3);
+  if (!old.length || view !== 'depot') { m.hidden = true; return; }
+  const seed = Number(ymd(today()).replace(/-/g, ''));
+  const e = old[seed % old.length];
+  m.dataset.id = e.id;
+  m.innerHTML = `<span class="mi" aria-hidden="true">💭</span><span><span class="mt">Weißt du noch? · ${relAgo(e.date)}</span><br><span class="mb">${esc(e.title)}</span></span>`;
+  m.hidden = false;
+}
+
+function renderTrophies(s){
+  const won = new Set(unlocked(s));
+  $('#tCount').textContent = won.size + ' von ' + TROPHIES.length;
+  const next = TROPHIES.map(t => { const [v, g] = t.g(s); return {t, v, g, p:Math.min(1, v / g)}; }).filter(x => x.v < x.g).sort((a, b) => b.p - a.p)[0];
+  const ng = $('#nextGoal');
+  if (next) ng.innerHTML = `<div class="l">Nächstes Ziel</div><div class="t">${next.t.i} ${esc(next.t.n)}</div><div class="note">${esc(next.t.d)} · noch ${fmt(next.g - next.v)}</div><div class="bar"><i style="width:${(next.p * 100).toFixed(0)}%"></i></div>`;
+  else ng.innerHTML = `<div class="l">Wahnsinn!</div><div class="t">👑 Du hast alle Pokale gewonnen</div>`;
+  $('#tgrid').innerHTML = TROPHIES.map(t => { const [v, g] = t.g(s), ok = won.has(t.id), p = Math.min(1, v / g);
+    return `<div class="trophy ${ok ? 'won' : 'locked'}"><div class="ti">${t.i}</div><div class="tn">${esc(t.n)}</div><div class="td">${esc(t.d)}</div>
+      ${ok ? '<div class="tp">Gewonnen ✓</div>' : `<div class="bar"><i style="width:${(p * 100).toFixed(0)}%"></i></div><div class="tp">${fmt(Math.min(v, g))} / ${fmt(g)}</div>`}</div>`; }).join('');
+  const sums = CATS.map(c => ({c, v:state.entries.filter(e => e.cat === c.id).reduce((a, e) => a + e.level, 0)})).filter(x => x.v).sort((a, b) => b.v - a.v);
+  const mx = sums.length ? sums[0].v : 1;
+  $('#catbars').innerHTML = sums.length ? sums.map(x => `<div class="catbar"><span>${x.c.icon}</span><span>${esc(x.c.name)}</span><div class="bar"><i style="width:${(x.v / mx * 100).toFixed(0)}%"></i></div><span class="cv">${fmt(x.v)}</span></div>`).join('')
+    : '<p class="note">Sobald du Erfolge einträgst, siehst du hier, in welchen Bereichen du am meisten punktest.</p>';
+}
+
+/* ---------- views & sheets ---------- */
+function setView(v){
+  view = v;
+  $('#viewDepot').hidden = v !== 'depot'; $('#viewTrophies').hidden = v !== 'pokale';
+  $('#tabDepot').classList.toggle('active', v === 'depot'); $('#tabTrophies').classList.toggle('active', v === 'pokale');
+  renderMemory(); window.scrollTo({top:0, behavior: reduceMotion ? 'auto' : 'smooth'});
+  if (v === 'depot') renderChart();
+}
+function openSheet(id){
+  document.querySelectorAll('.sheet.open').forEach(s => s.classList.remove('open'));
+  $('#' + id).classList.add('open'); $('#' + id).scrollTop = 0; $('#backdrop').classList.add('open');
+}
+function closeSheets(){
+  document.querySelectorAll('.sheet.open').forEach(s => s.classList.remove('open'));
+  $('#backdrop').classList.remove('open');
+  if (!state.onboarded) { state.onboarded = true; save(); }
+}
+let toastTimer;
+function toast(html, ms){
+  const t = $('#toast'); t.innerHTML = html; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2800);
+}
+
+/* ---------- add / edit ---------- */
+function renderCatChips(){
+  $('#fCats').innerHTML = CATS.map(c => `<button type="button" class="chip" data-cat="${c.id}" aria-pressed="${c.id === formCat}">${c.icon} ${c.name}</button>`).join('');
+}
+function updateLevelUI(){
+  const l = Number($('#fLevel').value), L = LEVELS[l], c = TIER_COLOR[tier(l)];
+  const pick = $('#lvlPick');
+  pick.style.setProperty('--c', c);
+  $('#fLevel').style.setProperty('--p', ((l - 1) / 9 * 100) + '%');
+  $('#lvlEmoji').textContent = L.e; $('#lvlNum').textContent = l; $('#lvlText').textContent = L.t; $('#lvlHint').textContent = L.h;
+}
+function openAdd(id){
+  editingId = id || null;
+  const e = id ? state.entries.find(x => x.id === id) : null;
+  $('#addTitle').textContent = e ? 'Erfolg bearbeiten' : 'Neuer Erfolg';
+  $('#btnSave').textContent = e ? 'Speichern' : 'Ins Depot legen';
+  $('#fTitle').value = e ? e.title : '';
+  $('#fLevel').value = e ? e.level : 5;
+  formCat = e ? e.cat : formCat;
+  $('#fDate').value = e ? e.date : ymd(today());
+  $('#fDate').max = ymd(today());
+  $('#fNote').value = e ? e.note : '';
+  $('#fTitleErr').hidden = true;
+  renderCatChips(); updateLevelUI(); openSheet('sheetAdd');
+  if (!e && window.matchMedia('(hover:hover)').matches) setTimeout(() => $('#fTitle').focus(), 320);
+}
+function saveEntry(ev){
+  ev.preventDefault();
+  const title = $('#fTitle').value.trim();
+  if (!title) { $('#fTitleErr').hidden = false; $('#fTitle').focus(); return; }
+  const level = Number($('#fLevel').value);
+  let date = $('#fDate').value || ymd(today());
+  if (date > ymd(today())) date = ymd(today());
+  const before = new Set(unlocked(stats()));
+  if (editingId) {
+    const e = state.entries.find(x => x.id === editingId);
+    Object.assign(e, {title, level, cat:formCat, date, note:$('#fNote').value.trim()});
+  } else {
+    state.entries.push({id:uid(), title, level, cat:formCat, date, note:$('#fNote').value.trim(), created:Date.now(), ex:false});
+  }
+  const now = unlocked(stats());
+  const fresh = state.entries.some(e => e.ex) ? [] : TROPHIES.filter(t => now.includes(t.id) && !before.has(t.id) && !state.trophies.includes(t.id));
+  state.trophies = [...new Set([...state.trophies, ...now])];
+  save(); closeSheets(); if (view !== 'depot') setView('depot'); render();
+  if (!editingId) {
+    confetti(20 + level * 12);
+    setTimeout(() => {
+      if (fresh.length) { confetti(160); toast(`${fresh[0].i} Neuer Pokal: <b>${esc(fresh[0].n)}</b>!`, 3600); }
+      else toast(`${LEVELS[level].e} <b>+${level} Punkte!</b> Dein Depot: ${fmt(stats().total)}`);
+    }, 150);
+  } else toast('Gespeichert');
+  editingId = null;
+}
+
+/* ---------- detail ---------- */
+function openDetail(id){
+  const e = state.entries.find(x => x.id === id); if (!e) return;
+  detailId = id;
+  const t = tier(e.level), c = catById[e.cat], d = parse(e.date);
+  let bars = ''; for (let i = 1; i <= 10; i++) bars += `<i class="${i <= e.level ? 'on' : ''}"></i>`;
+  $('#detailBody').innerHTML = `<div class="detail-top t-${t}"><span class="ico">${c.icon}</span><div style="min-width:0"><h3>${esc(e.title)}</h3><div class="sub">${esc(c.name)} · ${d.getDate()}. ${MONTHS[d.getMonth()]} ${d.getFullYear()}</div></div></div>
+    <div class="dlevel t-${t}"><div><div class="pts">${LEVELS[e.level].e} +${e.level}</div><div class="note">${LEVELS[e.level].t}</div></div><span class="lvl">${bars}</span></div>
+    ${e.note ? `<div class="dnote">${esc(e.note)}</div>` : ''}
+    <div class="btn-row"><button type="button" class="btn btn-ghost" id="btnEdit">Bearbeiten</button><button type="button" class="btn btn-danger" id="btnDel">Löschen</button></div>`;
+  openSheet('sheetDetail');
+}
+
+/* ---------- filter sheet ---------- */
+function renderFilterSheet(){
+  $('#filSizes').innerHTML = ['green','blue','gold'].map(s => `<button type="button" class="chip" data-size="${s}" aria-pressed="${filter.sizes.has(s)}">${tierName[s]}</button>`).join('');
+  $('#filCats').innerHTML = CATS.map(c => `<button type="button" class="chip" data-fcat="${c.id}" aria-pressed="${filter.cats.has(c.id)}">${c.icon} ${c.name}</button>`).join('');
+  $('#filSort').innerHTML = [['new','Neueste zuerst'],['big','Größte zuerst'],['old','Älteste zuerst']].map(([k, n]) => `<button type="button" class="chip" data-sort="${k}" aria-pressed="${filter.sort === k}">${n}</button>`).join('');
+}
+
+/* ---------- backup ---------- */
+async function exportData(){
+  const json = JSON.stringify({app:'WinStock', version:1, exported:new Date().toISOString(), name:state.name, entries:state.entries.filter(e => !e.ex), trophies:state.trophies}, null, 1);
+  const fname = 'winstock-backup-' + ymd(today()) + '.json';
+  if (window.claude && window.claude.use) {
+    try { const dl = await window.claude.use('downloads'); if (dl) { await dl.save({filename:fname, data:json}); toast('Backup gespeichert'); return; } }
+    catch (e) { toast('Backup wurde nicht gespeichert.'); return; }
+  }
+  try {
+    const file = new File([json], fname, {type:'application/json'});
+    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:'WinStock-Backup'}); toast('Backup geteilt'); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  try {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([json], {type:'application/json'})); a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove();
+  } catch (e) {}
+  try { await navigator.clipboard.writeText(json); toast('Backup erstellt und in die Zwischenablage kopiert'); }
+  catch (e) { toast('Backup-Datei erstellt'); }
+}
+function importData(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      const list = (Array.isArray(data) ? data : data.entries || []).map(cleanEntry).filter(Boolean);
+      if (!list.length) throw new Error('leer');
+      state.entries = state.entries.filter(e => !e.ex);
+      const ids = new Set(state.entries.map(e => e.id)); let added = 0;
+      for (const e of list) if (!ids.has(e.id)) { state.entries.push(e); added++; }
+      if (data.name && !state.name) state.name = String(data.name).slice(0, 30);
+      state.trophies = unlocked(stats()); state.onboarded = true;
+      save(); closeSheets(); render(); toast(`<b>${added}</b> Erfolge geladen`);
+    } catch (e) { toast('Diese Datei ist kein WinStock-Backup.'); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------- confetti ---------- */
+function confetti(n){
+  if (reduceMotion) return;
+  const c = $('#confetti'), ctx = c.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  const W = innerWidth, H = innerHeight;
+  c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); c.hidden = false;
+  const cols = ['#2BD67B','#4DA3FF','#FFC23D','#FF7AB6','#B58CFF','#ffffff'];
+  const ps = Array.from({length:n}, () => ({x:W / 2 + (Math.random() - .5) * 60, y:H - 90, vx:(Math.random() - .5) * 14, vy:-(Math.random() * 15 + 9),
+    r:Math.random() * 7 + 5, c:cols[Math.random() * cols.length | 0], a:Math.random() * 6, va:(Math.random() - .5) * .35}));
+  let f = 0;
+  (function tick(){
+    ctx.clearRect(0, 0, W, H); let alive = false;
+    for (const p of ps) { p.vy += .42; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.a += p.va; if (p.y < H + 20) alive = true;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); }
+    if (alive && f++ < 260) requestAnimationFrame(tick); else { ctx.clearRect(0, 0, W, H); c.hidden = true; }
+  })();
+}
+
+/* ---------- events ---------- */
+$('#ranges').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; range = b.dataset.r;
+  try { localStorage.setItem(KEY + '.range', range); } catch (err) {} renderHeader(stats()); renderChart(); });
+$('#list').addEventListener('click', e => { const r = e.target.closest('.row'); if (r) openDetail(r.dataset.id); });
+$('#memory').addEventListener('click', e => openDetail($('#memory').dataset.id));
+$('#mood').addEventListener('click', () => { const s = stats(); toast(s.week ? `In den letzten 7 Tagen: <b>+${s.week} Punkte</b>` : 'Trag einen Erfolg ein, dann wird der Smiley wach!'); });
+$('#tabDepot').addEventListener('click', () => setView('depot'));
+$('#tabTrophies').addEventListener('click', () => setView('pokale'));
+$('#tabAdd').addEventListener('click', () => openAdd());
+$('#tabSearch').addEventListener('click', () => {
+  if (view !== 'depot') setView('depot');
+  $('#searchBar').hidden = false; const i = $('#q'); i.focus();
+  setTimeout(() => $('#searchBar').scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block:'start'}), 50);
+});
+$('#q').addEventListener('input', e => { q = e.target.value; renderList(); });
+$('#btnSearchClose').addEventListener('click', () => { q = ''; $('#q').value = ''; $('#searchBar').hidden = true; renderList(); });
+$('#tabFilter').addEventListener('click', () => { renderFilterSheet(); openSheet('sheetFilter'); });
+$('#sheetFilter').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  if (b.dataset.size) { const s = b.dataset.size; filter.sizes.has(s) ? filter.sizes.delete(s) : filter.sizes.add(s); }
+  if (b.dataset.fcat) { const c = b.dataset.fcat; filter.cats.has(c) ? filter.cats.delete(c) : filter.cats.add(c); }
+  if (b.dataset.sort) filter.sort = b.dataset.sort;
+  renderFilterSheet(); renderList();
+});
+$('#btnFilterReset').addEventListener('click', () => { filter.cats.clear(); filter.sizes.clear(); filter.sort = 'new'; renderFilterSheet(); renderList(); });
+$('#btnFilterDone').addEventListener('click', () => { closeSheets(); if (view !== 'depot') setView('depot'); });
+$('#activeFilters').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (!b) return;
+  const [k, v] = b.dataset.rm.split(':');
+  if (k === 'all') { filter.cats.clear(); filter.sizes.clear(); } else if (k === 'size') filter.sizes.delete(v); else filter.cats.delete(v);
+  renderList(); });
+$('#backdrop').addEventListener('click', closeSheets);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+
+$('#fLevel').addEventListener('input', () => { updateLevelUI(); if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {} });
+$('#fCats').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; formCat = b.dataset.cat; renderCatChips(); });
+$('#fTitle').addEventListener('input', () => { $('#fTitleErr').hidden = true; });
+$('#sheetAdd').addEventListener('submit', saveEntry);
+
+$('#detailBody').addEventListener('click', e => {
+  if (e.target.id === 'btnEdit') openAdd(detailId);
+  if (e.target.id === 'btnDel') {
+    const b = e.target;
+    if (b.dataset.armed) { state.entries = state.entries.filter(x => x.id !== detailId); save(); closeSheets(); render(); toast('Erfolg gelöscht'); }
+    else { b.dataset.armed = '1'; b.textContent = 'Wirklich löschen?'; }
+  }
+});
+
+$('#btnSettings').addEventListener('click', () => { $('#sName').value = state.name; const w = $('#btnWipe'); delete w.dataset.armed; w.textContent = 'Alle Erfolge löschen'; openSheet('sheetSettings'); });
+$('#sName').addEventListener('input', e => { state.name = e.target.value.trim(); save(); renderHeader(stats()); });
+$('#btnExport').addEventListener('click', exportData);
+$('#fileImport').addEventListener('change', e => { const f = e.target.files[0]; if (f) importData(f); e.target.value = ''; });
+$('#btnExamples').addEventListener('click', () => {
+  const own = state.entries.filter(e => !e.ex);
+  state.entries = own.concat(examples()); state.trophies = [...new Set([...state.trophies, ...unlocked(stats())])];
+  save(); closeSheets(); render(); toast('Beispiele geladen. Über das gelbe Banner kannst du sie wieder entfernen.');
+});
+$('#btnWipe').addEventListener('click', e => {
+  const b = e.currentTarget;
+  if (b.dataset.armed) { state.entries = []; state.trophies = []; save(); closeSheets(); render(); toast('Alle Erfolge gelöscht'); }
+  else { b.dataset.armed = '1'; b.textContent = 'Sicher? Das kann man nicht rückgängig machen'; }
+});
+function clearExamples(){ state.entries = state.entries.filter(e => !e.ex); state.trophies = unlocked(stats()); save(); render(); }
+$('#btnClearExamples').addEventListener('click', () => { clearExamples(); toast('Los geht’s! Tippe auf ＋ für deinen ersten Erfolg.'); });
+$('#btnStartOwn').addEventListener('click', () => { state.name = $('#wName').value.trim(); clearExamples(); closeSheets(); render(); toast('Los geht’s! Tippe auf ＋ für deinen ersten Erfolg.', 3500); });
+$('#btnStartExamples').addEventListener('click', () => { state.name = $('#wName').value.trim(); closeSheets(); render(); });
+
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(renderChart, 120); });
+
+/* ---------- start ---------- */
+render();
+if (firstRun || !state.onboarded) setTimeout(() => openSheet('sheetWelcome'), 400);
+if ('serviceWorker' in navigator && document.documentElement.classList.contains('standalone') && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+})();
+</script>
