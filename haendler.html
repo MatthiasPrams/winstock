@@ -46,6 +46,15 @@ textarea{min-height:90px;font-family:ui-monospace,Consolas,monospace;font-size:1
 .codebox{margin-top:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,var(--gain) 10%,var(--surface-2));border:1px solid color-mix(in srgb,var(--gain) 40%,var(--line))}
 .codebox .for{font-weight:700;margin-bottom:6px}
 .codebox code{display:block;font-family:ui-monospace,Consolas,monospace;font-size:12px;word-break:break-all;color:var(--fg);user-select:all}
+.steps{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.step{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface)}
+.sn{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font-weight:800;font-size:14px}
+.st{min-width:0;display:flex;flex-direction:column}
+.st span{font-size:12px;color:var(--muted)}
+.btn-sm{padding:9px 14px;border-radius:10px;font-weight:700;font-size:14px;background:var(--surface-2);border:1px solid var(--line)}
+.btn-sm.primary{background:var(--gain);color:#04210F;border-color:var(--gain)}
+.btn-sm.done{background:var(--surface-2);color:var(--gain);border-color:var(--gain)}
+.btn-outline{margin-top:10px;background:transparent;border:1.5px solid var(--gain);color:var(--gain)}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .kpi{background:var(--surface-2);border-radius:14px;padding:12px}
 .kpi .l{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
@@ -90,7 +99,11 @@ textarea{min-height:90px;font-family:ui-monospace,Consolas,monospace;font-size:1
       <div class="codebox" id="codebox" hidden>
         <div class="for" id="codeFor"></div>
         <code id="codeOut"></code>
-        <div class="btns"><button class="btn btn-ghost" type="button" id="btnCopy">Kopieren</button><button class="btn btn-primary" type="button" id="btnShare">Senden</button></div>
+        <div class="steps">
+          <div class="step"><span class="sn">1</span><div class="st"><b>Anleitung senden</b><span>Erklärt, wo der Code hinkommt</span></div><button class="btn-sm" type="button" id="btnShareInfo">Senden</button></div>
+          <div class="step"><span class="sn">2</span><div class="st"><b>Code senden</b><span>Eine Nachricht nur mit dem Code</span></div><button class="btn-sm primary" type="button" id="btnShareCode">Senden</button></div>
+        </div>
+        <button class="btn btn-outline" type="button" id="btnCopy">📋 Nur den Code kopieren</button>
       </div>
     </section>
 
@@ -146,12 +159,31 @@ function renderSales(){
     : '<div class="empty">Noch keine Verkäufe. Dein erster Code wartet!</div>';
 }
 
-function message(name, code){
-  return `Hier ist dein WinStock-Pro-Code, ${name}:\n\n${code}\n\nSo geht's: WinStock öffnen → Zahnrad ⚙️ → „Pro freischalten“ → Code einfügen → „Freischalten“.\n\nApp: ${APP_URL}`;
+function message(name){
+  return `Hallo ${name}! 🎉 Dein WinStock Pro ist bereit. In der nächsten Nachricht kommt dein Freischaltcode.\n\nSo geht's:\n1. Halte die nächste Nachricht gedrückt und tippe auf „Kopieren“.\n2. Öffne WinStock → Zahnrad ⚙️ → „Pro freischalten“.\n3. Tippe auf „Einfügen“ und dann auf „Freischalten“.\n\nApp: ${APP_URL}`;
 }
 function showCode(name, code){
-  lastCode = code; lastMsg = message(name, code);
+  lastCode = code; lastMsg = message(name);
   $('#codeFor').textContent = 'Code für ' + name; $('#codeOut').textContent = code; $('#codebox').hidden = false;
+  [['#btnShareInfo', 'Senden'], ['#btnShareCode', 'Senden']].forEach(([s, t]) => { const b = $(s); b.textContent = t; b.classList.remove('done'); });
+  $('#btnCopy').textContent = '📋 Nur den Code kopieren';
+}
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+    document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, t.length);
+    const ok = document.execCommand('copy'); ta.remove(); return ok;
+  } catch (e) { return false; }
+}
+async function send(text, btn){
+  if (navigator.share) {
+    try { await navigator.share({text}); btn.textContent = '✓ Gesendet'; btn.classList.add('done'); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  if (await copyText(text)) { btn.textContent = '✓ Kopiert'; btn.classList.add('done'); toast('Kopiert – jetzt im Messenger einfügen'); }
+  else toast('Senden ging nicht. Markiere den Code und kopiere ihn von Hand.');
 }
 
 $('#btnKey').addEventListener('click', async () => {
@@ -175,14 +207,13 @@ $('#btnGen').addEventListener('click', async () => {
   toast('Code für ' + name + ' erstellt');
 });
 
-$('#btnCopy').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(lastMsg); toast('Nachricht mit Code kopiert'); }
-  catch (e) { const r = document.createRange(); r.selectNodeContents($('#codeOut')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Code markiert – jetzt kopieren'); }
+$('#btnCopy').addEventListener('click', async e => {
+  const b = e.currentTarget;
+  if (await copyText(lastCode)) { b.textContent = '✓ Code kopiert'; toast('Code kopiert – jetzt im Messenger einfügen'); }
+  else { const r = document.createRange(); r.selectNodeContents($('#codeOut')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Code markiert – jetzt kopieren'); }
 });
-$('#btnShare').addEventListener('click', async () => {
-  if (navigator.share) { try { await navigator.share({text: lastMsg}); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
-  $('#btnCopy').click();
-});
+$('#btnShareInfo').addEventListener('click', e => send(lastMsg, e.currentTarget));
+$('#btnShareCode').addEventListener('click', e => send(lastCode, e.currentTarget));
 $('#sales').addEventListener('click', e => { const b = e.target.closest('button[data-code]'); if (!b) return;
   showCode(b.dataset.name, b.dataset.code); $('#codebox').scrollIntoView({behavior:'smooth', block:'center'}); });
 $('#btnForget').addEventListener('click', e => {

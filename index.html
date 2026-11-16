@@ -453,9 +453,12 @@ const THEMES = [
 let proName = null;
 const normName = n => String(n).normalize('NFC').trim().replace(/\s+/g, ' ');
 function b64uDec(s){ s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const bin = atob(s); return Uint8Array.from(bin, ch => ch.charCodeAt(0)); }
+// Finds the code anywhere in pasted text, e.g. when a whole chat message was copied.
+const CODE_RE = /WS-([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]{86})/;
+function extractCode(text){ const m = CODE_RE.exec(String(text).replace(/\s+/g, '')); return m ? m[0] : ''; }
 async function verifyCode(code){
   try {
-    const m = /^WS-([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(String(code).replace(/\s+/g, ''));
+    const m = CODE_RE.exec(extractCode(code));
     if (!m) return null;
     const name = normName(new TextDecoder().decode(b64uDec(m[1])));
     const sig = b64uDec(m[2]);
@@ -901,7 +904,7 @@ function importData(file){
       const ids = new Set(state.entries.map(e => e.id)); let added = 0;
       for (const e of list) if (!ids.has(e.id)) { state.entries.push(e); added++; }
       if (data.name && !state.name) state.name = String(data.name).slice(0, 30);
-      if (data.pro && !proName) verifyCode(data.pro).then(n => { if (!n) return; state.pro = String(data.pro).replace(/\s+/g, ''); proName = n;
+      if (data.pro && !proName) verifyCode(data.pro).then(n => { if (!n) return; state.pro = extractCode(data.pro); proName = n;
         if (THEMES.some(t => t.id === data.theme)) state.theme = data.theme; state.trophies = unlocked(stats()); save(); applyTheme(); render(); });
       state.trophies = unlocked(stats()); state.onboarded = true;
       save(); closeSheets(); render(); toast(`<b>${added}</b> Erfolge geladen`);
@@ -1009,7 +1012,7 @@ $('#btnUnlock').addEventListener('click', async () => {
   const name = await verifyCode(code);
   btn.disabled = false;
   if (!name) { err.textContent = 'Dieser Code funktioniert nicht. Prüfe, ob du ihn vollständig kopiert hast.'; err.hidden = false; return; }
-  state.pro = code.replace(/\s+/g, ''); proName = name;
+  state.pro = extractCode(code); proName = name;
   if (!state.name) state.name = name;
   state.trophies = [...new Set([...state.trophies, ...unlocked(stats())])];
   save(); closeSheets(); applyTheme(); render();
