@@ -364,6 +364,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
     <span class="flabel" style="margin-top:12px">Sonstiges</span>
     <button class="btn btn-ghost" type="button" id="btnExamples">Beispiel-Erfolge anzeigen</button>
     <button class="btn btn-danger" type="button" id="btnWipe">Alle Erfolge löschen</button>
+    <p class="note" style="text-align:center;margin:10px 0 0">WinStock · Version 1.3</p>
   </div>
 </div>
 
@@ -1025,8 +1026,18 @@ let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTime
 render();
 if (state.pro) verifyCode(state.pro).then(n => { proName = n; if (!n) { state.pro = ''; save(); } applyTheme(); render(); });
 if (firstRun || !state.onboarded) setTimeout(() => openSheet('sheetWelcome'), 400);
-if ('serviceWorker' in navigator && document.documentElement.classList.contains('standalone') && location.protocol === 'https:') {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && document.documentElement.classList.contains('standalone') && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  // Check for a new version on every start and whenever the app comes back to the foreground.
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js', {updateViaCache: 'none'}).then(reg => {
+    reg.update().catch(() => {});
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+  }).catch(() => {});
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloaded || document.querySelector('.sheet.open')) return;
+    reloaded = true; location.reload();
+  });
 }
 })();
 </script>
